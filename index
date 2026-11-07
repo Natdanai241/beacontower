@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>THE LAST BEACON: THE FOUR LIGHTS</title>
+<style>
+:root{--night:#0a1030;--teal:#1b8a8f;--parch:#f0e1b8;--parch2:#d9c28a;--gold:#e8b53c;--cyan:#6fe8ff;--violet:#8e5cff;--ink:#2a1d0e;--danger:#e0525c}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--night);color:var(--parch);font-family:"Sarabun","Noto Sans Thai",Tahoma,sans-serif}
+body{background:radial-gradient(ellipse at 50% 0%,#1d3a7a 0%,var(--night) 70%)}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:20}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;z-index:1;overflow-y:auto}
+.screen.active{display:flex}
+h1.title{font-size:clamp(26px,6vw,52px);letter-spacing:2px;text-align:center;color:var(--gold);text-shadow:0 0 24px rgba(232,181,60,.6),0 3px 0 #5a3d08}
+h1.title small{display:block;font-size:.4em;color:var(--cyan);letter-spacing:6px;margin-top:6px}
+h2{color:var(--gold);text-align:center}
+.btn{background:linear-gradient(#2a6f8f,#134a66);color:#fff;border:2px solid var(--gold);border-radius:12px;padding:12px 22px;font:inherit;font-size:17px;cursor:pointer;min-width:200px;box-shadow:0 4px 0 #0a2a3a,0 0 14px rgba(111,232,255,.25)}
+.btn:active{transform:translateY(3px)}
+.btn.off{opacity:.45;filter:grayscale(.6)}
+.btn.sec{background:linear-gradient(#3a3560,#221f3d);border-color:var(--violet)}
+.btn.small{min-width:0;padding:8px 12px;font-size:14px}
+.panel{background:linear-gradient(var(--parch),var(--parch2));color:var(--ink);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:720px;width:100%}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;margin:6px 0}
+.seg button{background:#e9d9a8;border:2px solid #8a6a2a;border-radius:8px;padding:8px 14px;font:inherit;color:var(--ink);cursor:pointer}
+.seg button.sel{background:var(--gold);font-weight:700}
+input[type=text]{padding:10px;border-radius:8px;border:2px solid #8a6a2a;font:inherit;font-size:18px;text-align:center;width:170px}
+#inRoom{text-transform:uppercase}
+.charGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;width:100%;max-width:720px}
+.charCard{background:#f6ebc9;border:3px solid transparent;border-radius:12px;padding:8px;text-align:center;cursor:pointer;color:var(--ink);font-size:12px}
+.charCard.sel{border-color:var(--gold);box-shadow:0 0 14px var(--gold)}
+.charCard.taken{opacity:.35;pointer-events:none}
+.charCard svg{width:68px;height:68px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#888;margin-right:6px}
+.dot.on{background:#4ade80}.dot.off{background:#ef4444}.dot.re{background:#facc15}
+#scr-game{padding:0;gap:0;justify-content:flex-start;align-items:stretch;overflow:hidden}
+#topbar{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:5px 8px;background:rgba(8,14,40,.94);border-bottom:2px solid var(--gold);font-size:13px;flex:0 0 auto}
+.chip{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.08);border-radius:10px;padding:2px 8px;white-space:nowrap}
+.ic svg{width:18px;height:18px;display:block}
+#stormTrack{display:flex;gap:2px}
+#stormTrack i{width:11px;height:15px;border-radius:3px;background:#2b2150;border:1px solid #6a4aa0}
+#stormTrack i.on{background:var(--violet);box-shadow:0 0 8px var(--violet)}
+#stormTrack i.on.dg{background:var(--danger)}
+#lhProg{display:flex;gap:4px}
+#lhProg b{width:16px;height:16px;border-radius:50%;background:#333;border:2px solid #777}
+#lhProg b.lit{background:var(--gold);box-shadow:0 0 10px var(--gold);border-color:#fff}
+#mid{flex:1 1 auto;display:flex;min-height:0}
+#mapWrap{flex:1 1 auto;position:relative;min-width:0}
+#map{position:absolute;inset:0;width:100%;height:100%}
+#side{flex:0 0 220px;background:rgba(8,14,40,.9);border-left:2px solid var(--teal);display:flex;flex-direction:column;min-height:0}
+#players{padding:5px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;max-height:55%}
+.pl{display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:8px;background:rgba(255,255,255,.06);font-size:12px}
+.pl.cur{outline:2px solid var(--gold);background:rgba(232,181,60,.15)}
+#log{flex:1;overflow-y:auto;padding:5px;font-size:12px;line-height:1.35;border-top:1px solid var(--teal)}
+#log div{margin-bottom:3px}
+#bottom{flex:0 0 auto;background:rgba(8,14,40,.96);border-top:2px solid var(--gold);padding:5px 8px;padding-bottom:max(5px,env(safe-area-inset-bottom))}
+#curInfo{font-size:12px;margin-bottom:4px;display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center}
+#curInfo .pv{width:26px;height:26px}
+#curInfo .tag{background:rgba(111,232,255,.15);border-radius:8px;padding:1px 6px}
+#actions{display:flex;gap:5px;flex-wrap:wrap}
+#actions .btn{min-width:0;flex:1 1 80px;padding:8px 4px;font-size:14px}
+#hint{font-size:12px;color:var(--cyan);min-height:16px;margin-top:3px}
+#roomBadge{font-size:12px;color:var(--cyan)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.active{display:flex}
+.card{width:230px;height:320px;perspective:900px;margin:0 auto}
+.card .in{position:relative;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d}
+.card.flip .in{transform:rotateY(180deg)}
+.card .f,.card .b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;border:4px solid var(--gold);padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.card .b{background:repeating-linear-gradient(45deg,#1b2a66,#1b2a66 8px,#24357a 8px,#24357a 16px)}
+.card .f{transform:rotateY(180deg);background:linear-gradient(var(--parch),var(--parch2));color:var(--ink)}
+.card.storm .f{background:linear-gradient(#3a2470,#1c1040);color:#fff}
+.card h3{font-size:18px}.card svg{width:110px;height:110px}.card p{font-size:14px}
+#errPanel{position:fixed;left:8px;right:8px;bottom:8px;z-index:999;display:none;background:#4a0d14;color:#fff;border:2px solid var(--danger);border-radius:10px;padding:10px;font-size:13px}
+#errPanel.show{display:block}
+#errPanel pre{white-space:pre-wrap;font-size:11px;margin-top:4px;max-height:40vh;overflow:auto}
+#toast{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;border:1px solid var(--gold);border-radius:10px;padding:8px 14px;z-index:998;display:none;max-width:90%;font-size:14px;text-align:center}
+.tok{transition:transform .5s ease;pointer-events:none}
+.tok.cur circle{animation:pu 1s infinite alternate}
+@keyframes pu{from{stroke:#fff}to{stroke:#e8b53c;stroke-width:5}}
+.hl{fill:none;stroke:#6fe8ff;stroke-width:4;stroke-dasharray:8 6;animation:dsh 1s linear infinite;pointer-events:none}
+@keyframes dsh{to{stroke-dashoffset:-28}}
+.wv{animation:wv 9s ease-in-out infinite alternate}
+@keyframes wv{to{transform:translateX(30px)}}
+.glow{opacity:0;transition:opacity .6s}
+.glow.on{opacity:.9;animation:gl 2s ease-in-out infinite alternate}
+@keyframes gl{to{opacity:.45}}
+.ring{transform-box:fill-box;transform-origin:center;animation:rg 1.4s ease-out forwards;fill:none;stroke:#ffe27a;stroke-width:6}
+@keyframes rg{from{transform:scale(.3);opacity:1}to{transform:scale(6);opacity:0}}
+.beam{stroke:#ffe27a;stroke-width:8;stroke-linecap:round;filter:url(#glow);stroke-dasharray:900;stroke-dashoffset:900;animation:bm 1.6s ease forwards}
+@keyframes bm{to{stroke-dashoffset:0}}
+@media (max-width:760px){
+#mid{flex-direction:column}
+#side{flex:0 0 26%;border-left:0;border-top:2px solid var(--teal);flex-direction:row}
+#players{max-height:none;flex:1}#log{border-top:0;border-left:1px solid var(--teal);flex:1}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div id="toast"></div>
+
+<section class="screen active" id="scr-menu">
+  <h1 class="title">THE LAST BEACON<small>THE FOUR LIGHTS</small></h1>
+  <p>เกมกระดานร่วมมือ 2–6 ผู้เล่น · ราว 25–40 นาที</p>
+  <button class="btn" id="btnPlay">เริ่มเกม</button>
+  <button class="btn sec" id="btnResume" style="display:none">เล่นเกมเดี่ยวต่อ</button>
+  <button class="btn sec" id="btnRules">วิธีเล่น</button>
+  <button class="btn sec" id="btnMusic">ดนตรี: เปิด</button>
+  <button class="btn small sec" id="btnTest">ทดสอบระบบ (จำลองเกมบอท)</button>
+</section>
+
+<section class="screen" id="scr-mode">
+  <h2>เลือกโหมดเกม</h2>
+  <button class="btn" id="btnSolo">เดี่ยว / บอท</button>
+  <button class="btn" id="btnOnline">ออนไลน์ P2P จริง</button>
+  <button class="btn sec" data-back="scr-menu">ย้อนกลับ</button>
+</section>
+
+<section class="screen" id="scr-setup">
+  <h2>ตั้งค่าเกมเดี่ยว</h2>
+  <div class="panel">
+    <p>จำนวนผู้เล่นทั้งหมด (คุณ + บอท)</p><div class="row seg" id="segCount"></div>
+    <p>ความยากของบอท / เหตุการณ์</p><div class="row seg" id="segDiff"></div>
+    <p id="roundsInfo" style="font-weight:700"></p>
+    <p id="diffInfo" style="font-size:13px"></p>
+  </div>
+  <button class="btn" id="btnToChars">เลือกตัวละคร</button>
+  <button class="btn sec" data-back="scr-mode">ย้อนกลับ</button>
+</section>
+
+<section class="screen" id="scr-chars">
+  <h2>เลือกตัวละครของคุณ</h2>
+  <div class="charGrid" id="charGrid"></div>
+  <p id="charDesc" class="panel">แตะตัวละครเพื่อดูความสามารถ</p>
+  <button class="btn" id="btnStart">เริ่มผจญภัย</button>
+  <button class="btn sec" id="btnCharsBack">ย้อนกลับ</button>
+</section>
+
+<section class="screen" id="scr-lobby">
+  <h2>ห้องรอออนไลน์</h2>
+  <div class="panel">
+    <div class="row">
+      <input type="text" id="inName" maxlength="12" placeholder="ชื่อผู้เล่น">
+      <input type="text" id="inRoom" maxlength="5" placeholder="รหัสห้อง 5 ตัว">
+    </div>
+    <div class="row">
+      <button class="btn small" id="btnCreate">สร้างห้อง</button>
+      <button class="btn small" id="btnJoin">เข้าร่วมห้อง</button>
+      <button class="btn small sec" id="btnTurn">ตั้งค่า TURN</button>
+    </div>
+    <p id="netStatus"></p>
+    <p id="roomCode" style="font-size:30px;text-align:center;font-weight:700;letter-spacing:6px"></p>
+    <div class="row"><button class="btn small sec" id="btnCopyLink" style="display:none">คัดลอกลิงก์เชิญ</button></div>
+    <div id="lobbyList"></div>
+    <p style="margin-top:6px;font-size:13px">เลือกตัวละคร:</p>
+    <div class="charGrid" id="lobbyChars" style="margin-top:6px"></div>
+    <p style="font-size:12px;margin-top:8px">หมายเหตุ: ใช้ WebRTC ผ่านเซิร์ฟเวอร์สัญญาณ PeerJS สาธารณะ และ STUN เท่านั้น P2P ตรงอาจเชื่อมต่อไม่ได้บนเครือข่ายมือถือ/Wi-Fi ที่จำกัด ต้องตั้งค่า TURN เอง (ปุ่ม ตั้งค่า TURN) จึงจะเสถียรขึ้น หากโฮสต์หลุด เกมจะหยุด (ไม่มีการย้ายโฮสต์) โฮสต์เปิดห้องรหัสเดิมด้วยชื่อเดิมเพื่อกู้เกมได้</p>
+  </div>
+  <button class="btn" id="btnHostStart" style="display:none">เริ่มเกม (โฮสต์)</button>
+  <button class="btn sec" id="btnLobbyBack">ย้อนกลับ</button>
+</section>
+
+<section class="screen" id="scr-game">
+  <div id="topbar">
+    <span class="chip">รอบ <b id="tRound">1</b>/<b id="tMax">8</b></span>
+    <span class="chip">พายุ <span id="stormTrack"></span></span>
+    <span class="chip">ประภาคาร <span id="lhProg"></span></span>
+    <span class="chip"><span class="ic" data-i="wood"></span>ไม้ <b id="rWood">0</b></span>
+    <span class="chip"><span class="ic" data-i="iron"></span>เหล็ก <b id="rIron">0</b></span>
+    <span class="chip"><span class="ic" data-i="crystal"></span>คริสตัล <b id="rCrystal">0</b></span>
+    <span class="chip"><span class="ic" data-i="rations"></span>เสบียง <b id="rRations">0</b></span>
+    <span id="roomBadge"></span>
+    <button class="btn small sec" id="btnHistory">สรุปรอบ</button>
+    <button class="btn small sec" id="btnMusic2">ดนตรี</button>
+    <button class="btn small sec" id="btnRestart">เริ่มใหม่</button>
+  </div>
+  <div id="mid">
+    <div id="mapWrap"><svg id="map" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <aside id="side"><div id="players"></div><div id="log"></div></aside>
+  </div>
+  <div id="bottom">
+    <div id="curInfo"></div>
+    <div id="actions">
+      <button class="btn" data-act="move">เดิน</button>
+      <button class="btn" data-act="gather">เก็บของ</button>
+      <button class="btn" data-act="explore">สำรวจ</button>
+      <button class="btn" data-act="repair">ซ่อม/จุดไฟ</button>
+      <button class="btn" data-act="rescue">ช่วยคน</button>
+      <button class="btn" data-act="final">จุดไฟสุดท้าย</button>
+      <button class="btn" data-act="special">พิเศษ</button>
+      <button class="btn sec" data-act="end">จบเทิร์น</button>
+    </div>
+    <div id="hint"></div>
+  </div>
+</section>
+
+<section class="screen" id="scr-end">
+  <h1 class="title" id="endTitle"></h1>
+  <div class="panel" id="endBody"></div>
+  <button class="btn" id="btnNewGame">เกมใหม่</button>
+  <button class="btn sec" id="btnEndMenu">เมนูหลัก</button>
+</section>
+
+<div class="modal" id="mdCard"><div style="text-align:center">
+  <div class="card" id="cardEl"><div class="in">
+    <div class="b"></div>
+    <div class="f"><h3 id="cardTitle"></h3><div id="cardArt"></div><p id="cardText"></p></div>
+  </div></div>
+  <button class="btn" id="btnCardOk" style="margin-top:12px">ตกลง</button>
+</div></div>
+
+<div class="modal" id="mdConfirm"><div class="panel" style="text-align:center">
+  <p id="confirmText"></p>
+  <div class="row"><button class="btn small" id="btnConfirmYes">ยืนยัน</button><button class="btn small sec" id="btnConfirmNo">ยกเลิก</button></div>
+</div></div>
+
+<div class="modal" id="mdChoose"><div class="panel" style="text-align:center">
+  <p id="chooseTitle" style="font-weight:700"></p>
+  <div class="row" id="chooseBtns"></div>
+</div></div>
+
+<div class="modal" id="mdHistory"><div class="panel">
+  <h2 style="color:var(--ink)">สรุปรอบ</h2>
+  <div id="histBody" style="max-height:50vh;overflow-y:auto;font-size:14px"></div>
+  <button class="btn small" id="btnHistClose" style="margin-top:8px">ปิด</button>
+</div></div>
+
+<div class="modal" id="mdRules"><div class="panel">
+  <h2 style="color:var(--ink)">วิธีเล่น</h2>
+  <div id="rulesBody" style="max-height:55vh;overflow-y:auto;font-size:14px"></div>
+  <button class="btn small" id="btnRulesClose" style="margin-top:8px">ปิด</button>
+</div></div>
+
+<div id="errPanel"><b id="errTitle">เกิดข้อผิดพลาด</b> <button class="btn small" id="btnErrClose">ปิด</button><pre id="errText"></pre></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>
+"use strict";
+/* ============ 0. UTIL / STATE ============ */
+const $=id=>document.getElementById(id);
+const RM=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+const S={mode:null,G:null,myId:0,cfg:null,busy:0,seen:0,gid:null,cq:[],screen:"scr-menu",hintUntil:0,endTimer:null,endShown:false,ask:0,bt:null,cardOpen:false,cardT:null,setup:{count:2,diff:"normal",char:null}};
+const NET={peer:null,sid:0,isHost:false,code:"",name:"",hostConn:null,seats:[],lobby:[],joined:false,seen:{},hb:null,rt:null,jt:null,tries:0,lastHost:0,lostSid:-1};
+function panel(msg,title){$("errTitle").textContent=title||"เกิดข้อผิดพลาด";$("errText").textContent=String(msg);$("errPanel").classList.add("show")}
+window.addEventListener("error",e=>panel((e.message||"unknown")+" @"+(e.lineno||"?")));
+window.addEventListener("unhandledrejection",e=>panel(e.reason&&e.reason.message?e.reason.message:e.reason));
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
+function clear(e){while(e.firstChild)e.removeChild(e.firstChild)}
+function go(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));S.screen=id}
+function cleanName(s){return String(s||"").replace(/[\u0000-\u001f<>]/g,"").trim().slice(0,12)}
+function uid(){return Math.random().toString(36).slice(2,10)}
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>{t.style.display="none"},2600)}
+function hint(m){$("hint").textContent=m;S.hintUntil=Date.now()+4500}
+function ask(text,cb){$("confirmText").textContent=text;$("mdConfirm").classList.add("active");$("btnConfirmYes").onclick=()=>{$("mdConfirm").classList.remove("active");cb()};$("btnConfirmNo").onclick=()=>$("mdConfirm").classList.remove("active")}
+function choose(title,opts,cb){$("chooseTitle").textContent=title;const b=$("chooseBtns");clear(b);opts.forEach(o=>{const x=el("button","btn small",o.l);x.onclick=()=>{$("mdChoose").classList.remove("active");cb(o.v)};b.appendChild(x)});const c=el("button","btn small sec","ยกเลิก");c.onclick=()=>{$("mdChoose").classList.remove("active");S.ask=0};b.appendChild(c);$("mdChoose").classList.add("active")}
+function loadSet(){try{return JSON.parse(localStorage.getItem("lb_set")||"{}")||{}}catch(e){return{}}}
+function saveSet(o){try{localStorage.setItem("lb_set",JSON.stringify(Object.assign(loadSet(),o)))}catch(e){}}
+
+/* RNG (seedable for tests) */
+let _s=(Date.now()%2147483647)|0;
+function rng(){_s=(_s+0x6D2B79F5)|0;let t=Math.imul(_s^(_s>>>15),1|_s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}
+function seed(s){_s=s|0}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a}
+
+/* ============ NETWORK CONFIG ============
+ signaling: PeerJS Cloud สาธารณะ (0.peerjs.com) เป็นค่าเริ่มต้น ใส่เซิร์ฟเวอร์ของตนเองได้ใน peerServer
+   เช่น {host:"peer.example.com",port:443,path:"/",secure:true}
+ TURN: ไม่ฝังรหัสผ่านในไฟล์ ใช้ปุ่ม "ตั้งค่า TURN" วาง JSON เช่น
+   [{"urls":["turn:host:3478?transport=udp","turns:host:443?transport=tcp"],"username":"u","credential":"p"}]
+   เก็บใน localStorage ของเบราว์เซอร์นั้นเท่านั้น */
+const CFG={stun:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:global.stun.twilio.com:3478"}],peerServer:null};
+
+/* ============ 1. DATA ============ */
+const RES=["wood","iron","crystal","rations"];
+const RN={wood:"ไม้",iron:"เหล็ก",crystal:"คริสตัล",rations:"เสบียง"};
+const RID={wood:"rWood",iron:"rIron",crystal:"rCrystal",rations:"rRations"};
+/* SL = ทะเลสาบวิญญาณ (Spirit Lake), LS = ประภาคารใต้ (Southern Lighthouse) */
+const LOC={
+HB:{n:"ท่าเรือกลาง",x:620,y:330,t:"harbor"},
+EF:{n:"ป่ามรกต",x:640,y:140,t:"tree",res:"wood"},
+IM:{n:"เหมืองเหล็ก",x:700,y:540,t:"mine",res:"iron"},
+CC:{n:"ถ้ำคริสตัล",x:160,y:200,t:"cry",res:"crystal"},
+AV:{n:"หมู่บ้านร้าง",x:380,y:330,t:"village",ex:1},
+MF:{n:"ป่าหมอก",x:400,y:200,t:"mist",ex:1},
+AR:{n:"ซากโบราณ",x:380,y:500,t:"ruins",ex:1},
+SV:{n:"หุบเขาหิน",x:830,y:450,t:"mine",res:"iron"},
+SL:{n:"ทะเลสาบวิญญาณ",x:220,y:490,t:"cry",res:"crystal"},
+LN:{n:"ประภาคารเหนือ",x:420,y:60,t:"lh"},
+LE:{n:"ประภาคารตะวันออก",x:540,y:615,t:"lh"},
+LS:{n:"ประภาคารใต้",x:850,y:300,t:"lh"},
+LW:{n:"ประภาคารตะวันตก",x:70,y:380,t:"lh"}};
+const EDGES=[["HB","EF"],["HB","AV"],["HB","SV"],["HB","LS"],["EF","MF"],["EF","LN"],["IM","SV"],["IM","LE"],["IM","AR"],["CC","SL"],["CC","MF"],["CC","LW"],["AV","MF"],["AV","AR"],["MF","LN"],["AR","SL"],["AR","LE"],["SV","LS"],["SL","LW"]];
+const ADJ={};Object.keys(LOC).forEach(k=>{ADJ[k]=[]});EDGES.forEach(e=>{ADJ[e[0]].push(e[1]);ADJ[e[1]].push(e[0])});
+const ek=(a,b)=>a<b?a+"-"+b:b+"-"+a;
+const LHS=["LN","LE","LS","LW"];
+const LH={LN:{wood:3,crystal:2},LE:{iron:3,crystal:2},LS:{wood:2,iron:2,rations:1},LW:{iron:2,crystal:2,rations:1}};
+const FINAL={crystal:3,rations:3};
+const COAST=new Set(["HB","LN","LE","LS","LW"]);
+const COASTAL_EDGES=EDGES.filter(e=>LHS.indexOf(e[0])>=0||LHS.indexOf(e[1])>=0);
+const MAXR={2:8,3:7,4:6,5:5,6:4};
+const CH={
+cap:{n:"กัปตัน (Captain)",col:"#d94a4a",ab:"เดินครั้งแรกของแต่ละรอบไม่เสียแอคชัน (ครั้งเดียวต่อรอบ)"},
+eng:{n:"วิศวกร (Engineer)",col:"#e8b53c",ab:"เลือกลดทรัพยากร 1 ชนิดในต้นทุนจุดประภาคารลง 1 (ไม่ต่ำกว่า 0)"},
+sco:{n:"หน่วยสอดแนม (Scout)",col:"#2f9e63",ab:"สำรวจครั้งแรกของแต่ละรอบไม่เสียแอคชัน (ครั้งเดียวต่อรอบ)"},
+med:{n:"หมอ (Medic)",col:"#4fd0e8",ab:"ช่วยผู้รอดชีวิตแล้วได้เสบียงเพิ่ม 1"},
+sur:{n:"นักเอาชีวิตรอด (Survivalist)",col:"#b0702a",ab:"เก็บทรัพยากรครั้งแรกของแต่ละรอบได้ 3 แทน 2"},
+mag:{n:"จอมเวทพยากรณ์ (Weather Mage)",col:"#8e5cff",ab:"ส่องพายุใบถัดไปได้ และยกเลิกผลร้ายของพายุได้ 1 ครั้งต่อเกม (ปุ่มพิเศษ)"}};
+const CHL=["cap","eng","sco","med","sur","mag"];
+const TREASURE=[
+{id:"crystal",n:"เศษคริสตัล",d:"ได้รับคริสตัล 2",i:"crystal"},
+{id:"toolkit",n:"ชุดเครื่องมือโบราณ",d:"ลดต้นทุนการจุดประภาคารครั้งถัดไป 1 หน่วย (ถือได้ 1 ชุด ถ้ามีแล้วได้คริสตัล 1 แทน)",i:"toolkit"},
+{id:"supply",n:"คลังเสบียง",d:"ได้รับเสบียง 2",i:"rations"},
+{id:"compass",n:"เข็มทิศลม",d:"ผู้ที่พบได้เดินฟรี 1 ครั้ง (สะสมสูงสุด 2)",i:"compass"},
+{id:"ward",n:"ผนึกป้องพายุ",d:"ยกเลิกผลร้ายของพายุร้ายครั้งถัดไป (ถือได้ 1 อัน ถ้ามีแล้วได้คริสตัล 1 แทน)",i:"shield"},
+{id:"wood",n:"ไม้โบราณ",d:"ได้รับไม้ 2",i:"wood"},
+{id:"iron",n:"เหล็กศักดิ์สิทธิ์",d:"ได้รับเหล็ก 2",i:"iron"},
+{id:"map",n:"แผนที่ลึกลับ",d:"ดูพายุ 2 ใบถัดไป แล้วเลือกลำดับได้",i:"map"},
+{id:"signal",n:"สัญญาณกู้ภัย",d:"เปิดเผยกลุ่มผู้รอดชีวิตที่ซ่อนอยู่ (ถ้าไม่มีแล้วได้เสบียง 1)",i:"signal"},
+{id:"battery",n:"แบตเตอรี่อาคม",d:"ได้คริสตัล 1 และเสบียง 1",i:"battery"},
+{id:"boots",n:"รองเท้าผู้สำรวจ",d:"ได้เดินเพิ่มฟรี 1 ครั้ง (สะสมสูงสุด 2)",i:"boots"},
+{id:"charm",n:"เครื่องรางผู้พิทักษ์",d:"ปกป้องสถานที่ที่คุณยืนอยู่จากพายุร้ายครั้งถัดไป (ถือได้ 1 อัน ถ้ามีแล้วได้คริสตัล 1 แทน)",i:"charm"}];
+const STORMS=[
+{id:"wave",n:"คลื่นยักษ์",d:"ปิดเส้นทางชายฝั่ง 1 เส้นตลอดรอบหน้า",h:1,i:"wave"},
+{id:"light",n:"ฟ้าผ่า",d:"เสียทรัพยากรที่มีมากที่สุด 1 หน่วย",h:1,i:"bolt"},
+{id:"fog",n:"หมอกเวทมนตร์",d:"ห้ามสำรวจตลอดรอบหน้า",h:1,i:"fog"},
+{id:"tornado",n:"พายุทอร์นาโด",d:"ผู้เล่นที่อยู่ชายฝั่ง (ท่าเรือ/ประภาคาร) ต้องหลบภัย เสีย 1 แอคชันรอบหน้า",h:1,i:"tornado"},
+{id:"quake",n:"แผ่นดินไหว",d:"ปิดเส้นทางใดก็ได้ 1 เส้นตลอดรอบหน้า",h:1,i:"crack"},
+{id:"hope",n:"แสงแห่งความหวัง",d:"ได้รับคริสตัล 2",h:0,i:"sun"},
+{id:"ship",n:"เรืออับปาง",d:"เปิดเผยกลุ่มผู้รอดชีวิตที่ซ่อนอยู่ (ถ้าไม่มีแล้วได้เสบียง 1)",h:0,i:"ship"},
+{id:"tail",n:"ลมส่งท้าย",d:"ผู้เล่นทุกคนได้เดินฟรี 1 ครั้ง (สะสมสูงสุด 2)",h:0,i:"wind"},
+{id:"loss",n:"ทรัพยากรสูญหาย",d:"ทิ้งทรัพยากรที่สุ่มได้ 1 หน่วย (จากชนิดที่มีอยู่)",h:1,i:"cloud"},
+{id:"bridge",n:"สะพานพัง",d:"ปิดเส้นทางใดก็ได้ 1 เส้นตลอดรอบหน้า",h:1,i:"bridge"},
+{id:"dark",n:"เมฆดำ",d:"พายุร้ายครั้งถัดไปรุนแรงขึ้น (+1)",h:0,i:"cloud"},
+{id:"bless",n:"พรโบราณ",d:"ได้รับไม้ 2",h:0,i:"sun"},
+{id:"rain",n:"ฝนคริสตัล",d:"ได้รับคริสตัล 1 และเสบียง 1",h:0,i:"rain"},
+{id:"short",n:"เสบียงขาดแคลน",d:"จ่ายเสบียง 1 (ถ้าจ่ายไม่ได้ ทีมแพ้ ยกเว้นระดับง่าย)",h:1,i:"rations"},
+{id:"calm",n:"ทะเลสงบ",d:"ไม่มีผลร้ายเพิ่มเติม",h:0,i:"calm"},
+{id:"surge",n:"คลื่นซัดฝั่ง",d:"ปิดเส้นทางชายฝั่ง 2 เส้นตลอดรอบหน้า",h:1,i:"wave"}];
+const SM={},TM={};STORMS.forEach(s=>{SM[s.id]=s});TREASURE.forEach(s=>{TM[s.id]=s});
+const ICON={
+crystal:'<polygon points="50,8 78,38 50,92 22,38" fill="#6fe8ff" stroke="#fff" stroke-width="3"/><polygon points="50,8 62,38 50,92 38,38" fill="#b9f6ff" opacity=".7"/>',
+wood:'<rect x="12" y="36" width="70" height="28" rx="14" fill="#8a5a2a"/><circle cx="80" cy="50" r="14" fill="#d9a066" stroke="#5a3a18" stroke-width="3"/><circle cx="80" cy="50" r="6" fill="none" stroke="#5a3a18" stroke-width="2"/>',
+iron:'<polygon points="50,10 86,30 86,70 50,90 14,70 14,30" fill="#9aa5b5" stroke="#eef" stroke-width="4"/><circle cx="50" cy="50" r="14" fill="#566"/>',
+rations:'<ellipse cx="50" cy="60" rx="38" ry="26" fill="#d9a05a" stroke="#7a4a1a" stroke-width="4"/><path d="M26 52q24-20 48 0" stroke="#f3d29a" stroke-width="6" fill="none"/>',
+compass:'<circle cx="50" cy="50" r="38" fill="#e8b53c" stroke="#7a5a10" stroke-width="5"/><polygon points="50,18 58,50 50,82 42,50" fill="#e0525c"/><circle cx="50" cy="50" r="5" fill="#fff"/>',
+shield:'<path d="M50 8 L88 22 V50 Q88 80 50 94 Q12 80 12 50 V22Z" fill="#6fe8ff" stroke="#fff" stroke-width="4"/><path d="M50 22 V80" stroke="#134a66" stroke-width="5"/>',
+toolkit:'<rect x="14" y="40" width="72" height="42" rx="6" fill="#8a5a2a" stroke="#3a2008" stroke-width="4"/><rect x="38" y="28" width="24" height="14" fill="none" stroke="#3a2008" stroke-width="5"/><rect x="44" y="52" width="12" height="10" fill="#e8b53c"/>',
+map:'<polygon points="12,24 38,16 62,26 88,18 88,78 62,86 38,76 12,84" fill="#f0e1b8" stroke="#7a5a10" stroke-width="4"/><path d="M26 60 Q44 30 70 56" stroke="#e0525c" stroke-width="4" stroke-dasharray="6 5" fill="none"/>',
+signal:'<polygon points="50,6 61,38 94,38 67,58 78,92 50,72 22,92 33,58 6,38 39,38" fill="#e8b53c" stroke="#fff" stroke-width="3"/>',
+battery:'<rect x="22" y="22" width="56" height="64" rx="8" fill="#8e5cff" stroke="#fff" stroke-width="4"/><rect x="40" y="10" width="20" height="12" fill="#ddd"/><polygon points="54,34 38,58 50,58 44,78 64,50 52,50" fill="#ffe27a"/>',
+boots:'<path d="M30 14 H56 V54 L84 64 Q92 78 80 86 H26 Q18 86 18 76 V30Z" fill="#8a5a2a" stroke="#3a2008" stroke-width="4"/>',
+charm:'<circle cx="50" cy="52" r="34" fill="#2f9e63" stroke="#d8ffd8" stroke-width="4"/><path d="M50 26 L56 44 H74 L60 54 L66 72 L50 60 L34 72 L40 54 L26 44 H44Z" fill="#e8b53c"/>',
+cloud:'<ellipse cx="40" cy="56" rx="28" ry="20" fill="#6a4aa0"/><ellipse cx="64" cy="50" rx="26" ry="22" fill="#7a5ab0"/><rect x="14" y="56" width="74" height="22" rx="10" fill="#6a4aa0"/>',
+wave:'<path d="M6 60 Q22 30 38 60 T70 60 T96 56 V92 H6Z" fill="#1b8a8f" stroke="#6fe8ff" stroke-width="4"/>',
+bolt:'<polygon points="58,6 22,56 46,56 38,94 80,40 54,40" fill="#ffe27a" stroke="#fff" stroke-width="3"/>',
+fog:'<rect x="10" y="26" width="70" height="10" rx="5" fill="#cfd8e6"/><rect x="22" y="46" width="70" height="10" rx="5" fill="#e6ecf5"/><rect x="10" y="66" width="70" height="10" rx="5" fill="#cfd8e6"/>',
+tornado:'<path d="M12 18 H88 L76 36 H26Z M30 44 H72 L62 60 H38Z M42 68 H60 L54 90 H48Z" fill="#9a8ab8"/>',
+crack:'<polygon points="6,50 36,40 46,10 54,44 70,50 52,58 60,92 40,64" fill="#3a2a1a" stroke="#a07040" stroke-width="3"/>',
+sun:'<circle cx="50" cy="50" r="22" fill="#ffe27a"/><path d="M50 8V22M50 78V92M8 50H22M78 50H92M20 20L30 30M70 70L80 80M80 20L70 30M30 70L20 80" stroke="#e8b53c" stroke-width="5"/>',
+ship:'<path d="M14 58 H86 L74 80 H26Z" fill="#8a5a2a"/><rect x="48" y="14" width="4" height="44" fill="#5a3a18"/><polygon points="52,16 52,50 82,50" fill="#f0e1b8"/>',
+wind:'<path d="M10 36 H64 Q80 36 80 24 M10 54 H78 Q92 54 92 66 M10 72 H54" stroke="#cfe" stroke-width="6" fill="none" stroke-linecap="round"/>',
+bridge:'<path d="M6 60 Q50 20 94 60" stroke="#a07040" stroke-width="8" fill="none"/><path d="M30 44 L36 66 M64 44 L58 70" stroke="#7a5030" stroke-width="5"/><path d="M44 36 L54 54" stroke="#e0525c" stroke-width="6"/>',
+rain:'<ellipse cx="50" cy="34" rx="34" ry="20" fill="#6a4aa0"/><path d="M30 60 L24 80 M50 60 L44 82 M70 60 L64 80" stroke="#6fe8ff" stroke-width="6" stroke-linecap="round"/>',
+calm:'<path d="M6 60 Q28 48 50 60 T94 60" stroke="#6fe8ff" stroke-width="6" fill="none"/><circle cx="50" cy="30" r="14" fill="#ffe27a"/>'};
+function icon(k){return '<svg viewBox="0 0 100 100">'+(ICON[k]||"")+"</svg>"}
+function portrait(id){
+ const c=CH[id],sk="#f1c9a0";let hat="";
+ if(id==="cap")hat='<path d="M18 40 L50 14 L82 40 Z" fill="#232a55"/><rect x="18" y="38" width="64" height="7" fill="#e8b53c"/>';
+ else if(id==="eng")hat='<path d="M30 40 Q50 24 70 40Z" fill="#c07a2a"/><rect x="30" y="44" width="40" height="12" rx="6" fill="#444"/><circle cx="40" cy="50" r="6" fill="#6fe8ff"/><circle cx="60" cy="50" r="6" fill="#6fe8ff"/>';
+ else if(id==="sco")hat='<path d="M26 58 Q28 24 50 22 Q72 24 74 58 Q62 38 50 38 Q38 38 26 58Z" fill="#2f7a4a"/><path d="M62 24 L80 8 L72 30Z" fill="#fff"/>';
+ else if(id==="med")hat='<rect x="32" y="26" width="36" height="14" rx="4" fill="#fff"/><path d="M50 28v10M45 33h10" stroke="#e0525c" stroke-width="3"/>';
+ else if(id==="sur")hat='<path d="M30 40 Q50 28 70 40 L70 45 Q50 36 30 45Z" fill="#c24a2a"/>';
+ else hat='<path d="M26 42 L50 4 L74 42Z" fill="#5a30c8"/><ellipse cx="50" cy="42" rx="30" ry="6" fill="#3f2090"/><circle cx="50" cy="24" r="3" fill="#ffe27a"/>';
+ return '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="'+c.col+'" opacity=".35"/><path d="M14 100 Q50 52 86 100Z" fill="'+c.col+'"/><circle cx="50" cy="54" r="20" fill="'+sk+'"/>'+hat+'<circle cx="43" cy="55" r="2.5" fill="#222"/><circle cx="57" cy="55" r="2.5" fill="#222"/><path d="M43 63 Q50 68 57 63" stroke="#a33" fill="none" stroke-width="2"/></svg>';
+}
+const ART={
+harbor:'<rect x="-26" y="10" width="52" height="8" fill="#8a5a2a"/><path d="M-18 4 L18 4 L12 -8 L-12 -8Z" fill="#e8b53c"/><path d="M0 -8 V-30 L16 -10Z" fill="#f0e1b8"/>',
+tree:'<polygon points="-18,12 -8,-14 2,12" fill="#2f9e63"/><polygon points="-2,14 10,-22 22,14" fill="#1f7a4a"/><rect x="8" y="14" width="4" height="6" fill="#5a3a18"/>',
+mine:'<polygon points="-26,16 -4,-20 18,16" fill="#6b7788"/><polygon points="0,16 14,-8 28,16" fill="#8a97a8"/><circle cx="-4" cy="4" r="5" fill="#222"/>',
+cry:'<polygon points="-16,16 -8,-20 0,16" fill="#6fe8ff"/><polygon points="-2,16 8,-26 18,16" fill="#b9f6ff"/><polygon points="14,16 20,-6 26,16" fill="#6fe8ff"/>',
+village:'<rect x="-24" y="-2" width="20" height="18" fill="#a07040"/><polygon points="-28,-2 -14,-16 0,-2" fill="#7a3a2a"/><rect x="4" y="4" width="18" height="12" fill="#8a6030"/><polygon points="0,4 13,-8 26,4" fill="#6a2a1a"/>',
+mist:'<polygon points="-20,16 -12,-4 -4,16" fill="#1f6a4a"/><ellipse cx="-6" cy="0" rx="22" ry="10" fill="#cfd8e6" opacity=".9"/><ellipse cx="10" cy="-8" rx="16" ry="8" fill="#e6ecf5"/>',
+ruins:'<rect x="-22" y="-14" width="8" height="30" fill="#b8ad90"/><rect x="-6" y="-6" width="8" height="22" fill="#a89e82"/><rect x="10" y="-18" width="8" height="34" fill="#b8ad90"/><rect x="-26" y="-18" width="52" height="5" fill="#8a8068"/>',
+lh:'<polygon points="-12,20 12,20 8,-14 -8,-14" fill="#e9ddc0" stroke="#5a3d08" stroke-width="2"/><rect x="-9" y="-6" width="18" height="8" fill="#e0525c"/>'};
+const ISL={harbor:"#c9a96a",tree:"#2f7a4a",mine:"#7a7f8a",cry:"#4a6aa8",village:"#9a7a4a",mist:"#5a7a8a",ruins:"#8a7a5a",lh:"#6a5a8a"};
+
+/* ============ 2. RULES ENGINE ============ */
+const no=m=>({ok:false,msg:m});
+const curP=G=>G.players[G.cur];
+const isClosed=(G,a,b)=>G.closed.indexOf(ek(a,b))>=0;
+function emit(G,type,d){d=d||{};d.type=type;d.n=++G.fxN;G.fx.push(d);if(G.fx.length>24)G.fx.shift()}
+function lg(G,t){G.log.push({r:G.round,t:t});if(G.log.length>150)G.log.shift()}
+function addR(G,k,n){const g=Math.max(0,Math.min(12,G.res[k]+n)-G.res[k]);G.res[k]+=g;return g}
+function connected(closed){const seen={HB:1};const q=["HB"];let n=1;while(q.length){const x=q.shift();ADJ[x].forEach(y=>{if(seen[y]||closed.indexOf(ek(x,y))>=0)return;seen[y]=1;n++;q.push(y)})}return n===13}
+function path(G,a,b){if(a===b)return[];const prev={};prev[a]=null;const q=[a];while(q.length){const x=q.shift();for(const y of ADJ[x]){if(y in prev||isClosed(G,x,y))continue;prev[y]=x;if(y===b){const r=[];let c=b;while(c!==a){r.unshift(c);c=prev[c]}return r}q.push(y)}}return null}
+function newGame(cfg){
+ const sd=cfg.seed||Math.floor(Math.random()*2e9);seed(sd);
+ const n=cfg.players.length,d=cfg.diff||"normal";
+ const res={wood:2,iron:2,crystal:1,rations:3};
+ if(d==="easy"){res.wood=4;res.iron=4;res.crystal=3;res.rations=4}
+ if(d==="hard"){res.rations=2;res.crystal=0}
+ const ids=shuffle(["AV","MF","AR"]);const surv={};surv[ids[0]]="vis";surv[ids[1]]="vis";surv[ids[2]]="hid";
+ const G={gid:uid(),started:true,diff:d,n:n,round:1,max:MAXR[n],storm:0,res:res,lit:{},surv:surv,closed:[],fog:false,
+  players:cfg.players.map((p,i)=>({id:i,name:p.name,char:p.char,bot:!!p.bot,loc:"HB",ap:2,pen:0,free:0,u:{},online:true,downAt:0})),
+  cur:0,tDeck:shuffle(TREASURE.map(t=>t.id)),tDisc:[],sDeck:shuffle(STORMS.map(s=>s.id)),sDisc:[],
+  toolkit:0,ward:0,guard:null,dark:false,cancelArmed:false,mageUsed:false,peek:null,peekR:0,pend:null,goalLH:null,
+  log:[],hist:[],fx:[],fxN:0,over:null,rescued:0};
+ lg(G,"ภารกิจเริ่มต้น! จุดประภาคารทั้งสี่ แล้วกลับมาจุดประภาคารสุดท้ายที่ท่าเรือกลาง");
+ newRound(G);
+ return G;
+}
+function newRound(G){G.cur=0;G.players.forEach(p=>{p.ap=Math.max(0,2-p.pen);p.pen=0;p.u={}});lg(G,"— รอบที่ "+G.round+" เริ่มต้น —")}
+function pay(p,kind,test){
+ let src=null;
+ if(kind==="move"){if(p.char==="cap"&&!p.u.move)src="cap";else if(p.free>0)src="tok"}
+ else if(kind==="explore"&&p.char==="sco"&&!p.u.explore)src="sco";
+ if(!src&&p.ap<1)return false;
+ if(test)return true;
+ if(src==="cap")p.u.move=1;else if(src==="tok")p.free--;else if(src==="sco")p.u.explore=1;else p.ap--;
+ return true;
+}
+function lhCost(G,p,a){
+ const cost=Object.assign({},LH[p.loc]);
+ if(a.rEng){if(p.char!=="eng")return{ok:false,msg:"เฉพาะวิศวกรที่ลดต้นทุนได้"};if(!(cost[a.rEng]>0))return{ok:false,msg:"ลดทรัพยากรนั้นไม่ได้"};cost[a.rEng]--}
+ if(a.rTool){if(G.toolkit<1)return{ok:false,msg:"ไม่มีชุดเครื่องมือโบราณ"};if(!(cost[a.rTool]>0))return{ok:false,msg:"ลดทรัพยากรนั้นไม่ได้"};cost[a.rTool]--}
+ return{ok:true,cost:cost};
+}
+function check(G,p,kind,a){
+ a=a||{};
+ if(G.over)return "เกมจบแล้ว";
+ if(G.pend&&kind!=="mapOrder")return "ต้องเลือกลำดับพายุก่อน";
+ if(G.players[G.cur]!==p)return "ยังไม่ถึงตาของคุณ";
+ const L=LOC[p.loc];
+ switch(kind){
+ case "move":
+  if(!a.to||!LOC[a.to])return "ปลายทางไม่ถูกต้อง";
+  if(ADJ[p.loc].indexOf(a.to)<0)return "ไม่มีเส้นทางเชื่อมไปที่นั่น";
+  if(isClosed(G,p.loc,a.to))return "เส้นทางถูกปิดชั่วคราว";
+  if(!pay(p,"move",true))return "แอคชันหมดแล้ว";
+  return "";
+ case "gather":
+  if(!L.res)return "ที่นี่ไม่มีทรัพยากรให้เก็บ";
+  if(G.res[L.res]>=12)return "คลัง"+RN[L.res]+"เต็ม (12)";
+  if(!pay(p,"gather",true))return "แอคชันหมดแล้ว";
+  return "";
+ case "explore":
+  if(!L.ex)return "สำรวจได้เฉพาะหมู่บ้านร้าง ป่าหมอก ซากโบราณ";
+  if(G.fog)return "หมอกเวทมนตร์ปิดการสำรวจในรอบนี้";
+  if(!pay(p,"explore",true))return "แอคชันหมดแล้ว";
+  return "";
+ case "repair":{
+  if(LHS.indexOf(p.loc)<0)return "ต้องอยู่ที่ประภาคาร";
+  if(G.lit[p.loc])return "ประภาคารนี้สว่างแล้ว";
+  if(!pay(p,"repair",true))return "แอคชันหมดแล้ว";
+  const c=lhCost(G,p,a);if(!c.ok)return c.msg;
+  const miss=[];for(const k in c.cost)if(G.res[k]<c.cost[k])miss.push(RN[k]+" ขาด "+(c.cost[k]-G.res[k]));
+  if(miss.length)return "ทรัพยากรไม่พอ: "+miss.join(", ");
+  return "";}
+ case "rescue":
+  if(G.surv[p.loc]!=="vis")return "ที่นี่ไม่มีผู้รอดชีวิตให้ช่วย";
+  if(!pay(p,"rescue",true))return "แอคชันหมดแล้ว";
+  return "";
+ case "final":
+  if(p.loc!=="HB")return "ต้องอยู่ที่ท่าเรือกลาง";
+  if(LHS.some(l=>!G.lit[l]))return "ต้องจุดประภาคารให้ครบทั้ง 4 ก่อน";
+  if(G.players.some(q=>q.loc!=="HB"))return "ผู้เล่นทุกคนต้องกลับมาที่ท่าเรือกลาง";
+  if(G.res.crystal<3||G.res.rations<3)return "ต้องใช้คริสตัล 3 และเสบียง 3";
+  if(!pay(p,"final",true))return "แอคชันหมดแล้ว";
+  return "";
+ case "special":
+  if(p.char!=="mag")return "ความสามารถของตัวละครนี้ทำงานอัตโนมัติ ไม่มีปุ่มพิเศษ";
+  if(a.k==="cancel"){if(G.mageUsed)return "ใช้พลังยกเลิกพายุไปแล้ว (ครั้งเดียวต่อเกม)";if(G.cancelArmed)return "เตรียมพลังไว้แล้ว";return ""}
+  if(a.k==="peek")return "";
+  return "คำสั่งไม่ถูกต้อง";
+ case "mapOrder":
+  if(!G.pend||G.pend.pid!==p.id)return "ไม่มีการเลือกลำดับ";
+  return "";
+ }
+ return "คำสั่งไม่ถูกต้อง";
+}
+function ensureS(G,n){if(G.sDeck.length<n&&G.sDisc.length){G.sDeck=shuffle(G.sDisc).concat(G.sDeck);G.sDisc=[]}}
+function drawS(G){ensureS(G,1);const id=G.sDeck.pop();G.sDisc.push(id);return id}
+function drawT(G){if(!G.tDeck.length){G.tDeck=shuffle(G.tDisc);G.tDisc=[]}const id=G.tDeck.pop();G.tDisc.push(id);return id}
+function revealSurv(G){const k=Object.keys(G.surv).find(x=>G.surv[x]==="hid");if(k){G.surv[k]="vis";return "พบผู้รอดชีวิตที่"+LOC[k].n}addR(G,"rations",1);return "ไม่มีผู้รอดชีวิตซ่อนอยู่แล้ว ได้เสบียง 1"}
+function applyT(G,p,id){
+ switch(id){
+ case "crystal":return "ได้คริสตัล +"+addR(G,"crystal",2);
+ case "supply":return "ได้เสบียง +"+addR(G,"rations",2);
+ case "wood":return "ได้ไม้ +"+addR(G,"wood",2);
+ case "iron":return "ได้เหล็ก +"+addR(G,"iron",2);
+ case "battery":addR(G,"crystal",1);addR(G,"rations",1);return "ได้คริสตัล 1 เสบียง 1";
+ case "toolkit":if(G.toolkit<1){G.toolkit=1;return "ได้ชุดเครื่องมือโบราณ"}addR(G,"crystal",1);return "มีชุดเครื่องมืออยู่แล้ว ได้คริสตัล 1 แทน";
+ case "compass":case "boots":p.free=Math.min(2,p.free+1);return p.name+" ได้เดินฟรี 1 ครั้ง";
+ case "ward":if(G.ward<1){G.ward=1;return "ได้ผนึกป้องพายุ"}addR(G,"crystal",1);return "มีผนึกอยู่แล้ว ได้คริสตัล 1 แทน";
+ case "charm":if(!G.guard){G.guard=p.loc;return "ปกป้อง"+LOC[p.loc].n+"จากพายุร้ายครั้งถัดไป"}addR(G,"crystal",1);return "มีเครื่องรางอยู่แล้ว ได้คริสตัล 1 แทน";
+ case "signal":return revealSurv(G);
+ case "map":{ensureS(G,2);const n=G.sDeck.length;G.peek=[G.sDeck[n-1],G.sDeck[n-2]];G.pend={pid:p.id};return "ดูพายุถัดไป: "+SM[G.peek[0]].n+", "+SM[G.peek[1]].n}
+ }
+ return "";
+}
+function closeEdges(G,n,coastal){
+ const out=[];
+ for(const e of shuffle(coastal?COASTAL_EDGES:EDGES)){
+  if(out.length>=n)break;
+  const k=ek(e[0],e[1]);
+  if(G.closed.indexOf(k)>=0)continue;
+  if(G.guard&&(e[0]===G.guard||e[1]===G.guard))continue;
+  if(!connected(G.closed.concat([k])))continue;
+  G.closed.push(k);out.push(e);
+ }
+ return out;
+}
+function edgeNames(c){return c.length?"ปิดเส้นทาง: "+c.map(e=>LOC[e[0]].n+"↔"+LOC[e[1]].n).join(", "):"ปิดเส้นทางไม่ได้โดยไม่ตัดแผนที่ (ไม่มีผล)"}
+function lose(G,reason){if(G.over)return;G.over={win:false,reason:reason};lg(G,"ทีมพ่ายแพ้: "+reason)}
+function harm(G,id,sev){
+ const base=G.diff==="hard"?1:0;
+ switch(id){
+ case "wave":return edgeNames(closeEdges(G,1+sev,true));
+ case "surge":return edgeNames(closeEdges(G,2+sev,true));
+ case "quake":case "bridge":return edgeNames(closeEdges(G,1+sev,false));
+ case "fog":G.fog=true;if(sev)return "หมอกลง "+edgeNames(closeEdges(G,1,false));return "ห้ามสำรวจรอบหน้า";
+ case "light":{const t=[];for(let i=0;i<1+sev+base;i++){const k=RES.slice().sort((a,b)=>G.res[b]-G.res[a])[0];if(G.res[k]>0){G.res[k]--;t.push(RN[k])}}return t.length?"เสีย "+t.join(", "):"ไม่มีอะไรให้เสีย"}
+ case "loss":{const t=[];for(let i=0;i<1+sev+base;i++){const av=RES.filter(k=>G.res[k]>0);if(!av.length)break;const k=av[Math.floor(rng()*av.length)];G.res[k]--;t.push(RN[k])}return t.length?"เสีย "+t.join(", "):"ไม่มีอะไรให้เสีย"}
+ case "tornado":{const hit=G.players.filter(p=>(sev||COAST.has(p.loc))&&p.loc!==G.guard);hit.forEach(p=>{p.pen=1});return hit.length?"หลบภัย (เสีย 1 แอคชันรอบหน้า): "+hit.map(p=>p.name).join(", "):"ไม่มีผู้เล่นได้รับผลกระทบ"}
+ case "short":{const need=1+sev;if(G.res.rations>=need){G.res.rations-=need;return "จ่ายเสบียง "+need}if(G.diff==="easy"){G.res.rations=0;return "เสบียงไม่พอ แต่ระดับง่ายผ่านไปได้"}lose(G,"ไม่สามารถจ่ายเสบียงที่จำเป็นได้");return "จ่ายเสบียงไม่ได้!"}
+ }
+ return "";
+}
+function resolveStorm(G,ev){
+ if(ev.h){
+  const sev=G.dark?1:0;G.dark=false;
+  if(G.cancelArmed){G.cancelArmed=false;G.mageUsed=true;return "จอมเวทพยากรณ์ใช้พลังยกเลิกผลร้ายของพายุนี้!"}
+  if(G.ward>0){G.ward--;return "ผนึกป้องพายุทำงาน ยกเลิกผลร้ายของพายุนี้"}
+  const note=harm(G,ev.id,sev);G.guard=null;return note;
+ }
+ switch(ev.id){
+ case "hope":return "ได้คริสตัล +"+addR(G,"crystal",2);
+ case "bless":return "ได้ไม้ +"+addR(G,"wood",2);
+ case "rain":addR(G,"crystal",1);addR(G,"rations",1);return "ได้คริสตัล 1 เสบียง 1";
+ case "ship":return revealSurv(G);
+ case "tail":G.players.forEach(p=>{p.free=Math.min(2,p.free+1)});return "ทุกคนได้เดินฟรี 1 ครั้ง";
+ case "dark":G.dark=true;return "พายุร้ายครั้งถัดไปรุนแรงขึ้น";
+ }
+ return "";
+}
+function endRound(G){
+ G.cur=0;const pr=G.round;
+ G.closed=[];G.fog=false;
+ G.storm=Math.min(8,G.storm+1);
+ const id=drawS(G),ev=SM[id];
+ if(G.peek){G.peek=G.peek[0]===id&&G.peek.length>1?G.peek.slice(1):null}
+ emit(G,"storm",{id:id});
+ lg(G,"พายุสิ้นรอบ "+pr+": "+ev.n);
+ const note=resolveStorm(G,ev);if(note)lg(G,"→ "+note);
+ G.hist.push({r:pr,ev:ev.n,note:note||"",storm:G.storm,res:Object.assign({},G.res)});
+ if(!G.over){
+  if(G.storm>=8)lose(G,"ระดับพายุถึง 8 ก่อนจุดประภาคารสุดท้าย");
+  else if(pr>=G.max)lose(G,"หมดจำนวนรอบ ("+G.max+" รอบ) ก่อนจุดประภาคารสุดท้าย");
+ }
+ if(!G.over){G.round++;newRound(G)}
+}
+function endTurn(G){G.cur++;if(G.cur>=G.n)endRound(G)}
+function hasFree(p){return p.free>0||(p.char==="cap"&&!p.u.move)||(p.char==="sco"&&!p.u.explore)}
+function settle(G){let g=0;while(!G.over&&!G.pend&&g++<40){const p=curP(G);if(p.ap>0||hasFree(p))break;endTurn(G)}}
+function apply(G,a){
+ const p=G.players[a.pid];
+ if(!p)return no("ผู้เล่นไม่ถูกต้อง");
+ if(a.t==="end"){
+  if(G.over)return no("เกมจบแล้ว");
+  if(G.players[G.cur]!==p)return no("ยังไม่ถึงตาของคุณ");
+  if(G.pend)return no("ต้องเลือกลำดับพายุก่อน");
+  endTurn(G);settle(G);return{ok:true};
+ }
+ const why=check(G,p,a.t,a);
+ if(why)return no(why);
+ const L=LOC[p.loc];
+ switch(a.t){
+ case "move":pay(p,"move");p.loc=a.to;lg(G,p.name+" เดินไป"+LOC[a.to].n);emit(G,"move",{pid:p.id,to:a.to});break;
+ case "gather":{pay(p,"gather");const amt=(p.char==="sur"&&!p.u.gather)?3:2;p.u.gather=1;const g=addR(G,L.res,amt);lg(G,p.name+" เก็บ"+RN[L.res]+" +"+g);emit(G,"gather",{pid:p.id,loc:p.loc});break}
+ case "explore":{pay(p,"explore");let rv=false;if(G.surv[p.loc]==="hid"){G.surv[p.loc]="vis";rv=true}const id=drawT(G);emit(G,"card",{id:id,pid:p.id});lg(G,p.name+" สำรวจ"+L.n+(rv?" (พบผู้รอดชีวิต!)":"")+" พบ "+TM[id].n);const r=applyT(G,p,id);if(r)lg(G,"→ "+r);break}
+ case "repair":{pay(p,"repair");const c=lhCost(G,p,a).cost;for(const k in c)G.res[k]-=c[k];if(a.rTool)G.toolkit--;G.lit[p.loc]=1;emit(G,"ignite",{loc:p.loc,pid:p.id});lg(G,p.name+" จุด"+L.n+" สำเร็จ!");break}
+ case "rescue":{pay(p,"rescue");G.surv[p.loc]="done";G.rescued++;const g=addR(G,"rations",2+(p.char==="med"?1:0));G.storm=Math.max(0,G.storm-1);emit(G,"rescue",{pid:p.id,loc:p.loc});lg(G,p.name+" ช่วยผู้รอดชีวิตที่"+L.n+" เสบียง +"+g+" พายุ -1");break}
+ case "final":pay(p,"final");G.res.crystal-=3;G.res.rations-=3;G.over={win:true};lg(G,p.name+" จุดประภาคารสุดท้าย! ทีมชนะ!");break;
+ case "special":
+  if(a.k==="peek"){ensureS(G,1);if(!G.peek)G.peek=[G.sDeck[G.sDeck.length-1]];G.peekR=G.round;lg(G,p.name+" ส่องพายุถัดไป: "+SM[G.peek[0]].n)}
+  else{G.cancelArmed=true;lg(G,p.name+" เตรียมพลังยกเลิกผลร้ายของพายุร้ายครั้งถัดไป")}
+  break;
+ case "mapOrder":
+  if(a.swap&&G.peek&&G.peek.length>1){const n=G.sDeck.length;const t=G.sDeck[n-1];G.sDeck[n-1]=G.sDeck[n-2];G.sDeck[n-2]=t;G.peek=[G.peek[1],G.peek[0]]}
+  G.pend=null;lg(G,p.name+" จัดลำดับพายุแล้ว");break;
+ }
+ settle(G);
+ return{ok:true};
+}
+function viewOf(G){const v=Object.assign({},G);v.tDeck=G.tDeck.length;v.sDeck=G.sDeck.length;v.tDisc=G.tDisc.length;v.sDisc=G.sDisc.length;v.surv={};for(const k in G.surv)v.surv[k]=G.surv[k]==="hid"?"none":G.surv[k];return v}
+
+/* ============ 3. AI ============ */
+function nearestIn(G,from,list){let best=null,bd=99;list.forEach(k=>{const d=k===from?0:(path(G,from,k)||{length:99}).length;if(d<bd){bd=d;best=k}});return best?{loc:best,d:bd}:null}
+function supply(G,r){const o=[];for(const k in LOC){if(r==="rations"){if(G.surv[k]==="vis")o.push(k)}else if(LOC[k].res===r)o.push(k)}if(r==="rations"&&!o.length&&!G.fog){for(const k in LOC)if(LOC[k].ex)o.push(k)}return o}
+function totalNeed(G){const n={wood:0,iron:0,crystal:0,rations:0};LHS.forEach(l=>{if(!G.lit[l])for(const k in LH[l])n[k]+=LH[l][k]});for(const k in FINAL)n[k]+=FINAL[k];return n}
+function tryRepair(G,p){
+ const cost=LH[p.loc],keys=Object.keys(cost);
+ const best=c=>{let b=null,bs=-99;keys.forEach(k=>{if((c[k]||0)>0){const s=(c[k]-G.res[k])*10+RES.indexOf(k);if(s>bs){bs=s;b=k}}});return b};
+ const c=Object.assign({},cost),a={t:"repair"};
+ if(p.char==="eng"){const k=best(c);if(k){a.rEng=k;c[k]--}}
+ if(!check(G,p,"repair",a))return a;
+ if(G.toolkit>0){const k=best(c);if(k){a.rTool=k;c[k]--;if(!check(G,p,"repair",a))return a}}
+ return null;
+}
+function chooseLH(G,p){
+ const un=LHS.filter(l=>!G.lit[l]);if(!un.length)return null;
+ let b=un[0],bs=1e9;
+ un.forEach(l=>{let d=0;for(const k in LH[l])d+=Math.max(0,LH[l][k]-G.res[k]);const ds=(path(G,p.loc,l)||{length:99}).length;const s=d*2+ds;if(s<bs){bs=s;b=l}});
+ return b;
+}
+function botPlan(G,p){
+ const lv=G.diff,A=(a,why)=>({a:a,why:why});
+ if(G.pend&&G.pend.pid===p.id){const t=G.peek||[];return A({t:"mapOrder",swap:!!(t[0]&&SM[t[0]].h&&t[1]&&!SM[t[1]].h)},"จัดลำดับพายุ ให้เหตุร้ายมาทีหลัง")}
+ if(p.char==="mag"){
+  if(G.peekR!==G.round)return A({t:"special",k:"peek"},"ส่องพายุใบถัดไป");
+  if(lv!=="easy"&&!G.mageUsed&&!G.cancelArmed&&G.peek&&SM[G.peek[0]].h&&(lv==="hard"||G.storm>=4))return A({t:"special",k:"cancel"},"เตรียมยกเลิกพายุร้าย ("+SM[G.peek[0]].n+")");
+ }
+ if(!check(G,p,"final"))return A({t:"final"},"จุดประภาคารสุดท้าย");
+ if(LHS.indexOf(p.loc)>=0&&!G.lit[p.loc]){const a=tryRepair(G,p);if(a)return A(a,"จุด"+LOC[p.loc].n+" ทรัพยากรพร้อมแล้ว")}
+ if(G.surv[p.loc]==="vis"&&!check(G,p,"rescue"))return A({t:"rescue"},"ช่วยผู้รอดชีวิต ได้เสบียงและลดพายุ");
+ const need=totalNeed(G),def={};RES.forEach(k=>{def[k]=Math.max(0,need[k]-G.res[k])});
+ const L=LOC[p.loc];
+ if(L.res&&def[L.res]>0&&!check(G,p,"gather"))return A({t:"gather"},"เก็บ"+RN[L.res]+" (ทีมยังขาด "+def[L.res]+")");
+ if(L.ex&&!check(G,p,"explore")){
+  const free=p.char==="sco"&&!p.u.explore,anyDef=RES.some(k=>def[k]>0);
+  if(free||(anyDef&&lv!=="hard")||(lv==="hard"&&def.rations>0&&G.res.rations<2))return A({t:"explore"},"สำรวจหาทรัพยากรและสมบัติ");
+ }
+ if(!G.goalLH||G.lit[G.goalLH])G.goalLH=chooseLH(G,p);
+ const bots=G.players.filter(q=>q.bot),rank=Math.max(0,bots.indexOf(p));
+ let dl=[],lhGoal="HB";
+ if(G.goalLH){lhGoal=G.goalLH;for(const k in LH[G.goalLH])if(LH[G.goalLH][k]>G.res[k])dl.push(k)}
+ else{if(G.res.crystal<3)dl.push("crystal");if(G.res.rations<3)dl.push("rations")}
+ if(G.res.rations<1&&def.rations>0&&dl.indexOf("rations")<0)dl.unshift("rations");
+ if(!dl.length&&rank%2===1&&lv!=="easy")dl=RES.filter(k=>def[k]>0);
+ let tgt=null,why="";
+ if(dl.length){
+  let order=dl.slice();
+  if(lv==="easy")order.sort((x,y)=>{const a=nearestIn(G,p.loc,supply(G,x)),b=nearestIn(G,p.loc,supply(G,y));return(a?a.d:99)-(b?b.d:99)});
+  else{const r=rank%dl.length;order=dl.slice(r).concat(dl.slice(0,r))}
+  for(const r of order){const s=nearestIn(G,p.loc,supply(G,r));if(s&&s.d<99){tgt=s.loc;why="ไปหา"+RN[r]+"ที่"+LOC[s.loc].n;break}}
+ }
+ if(!tgt){tgt=lhGoal;why="ไปที่"+LOC[tgt].n}
+ if(tgt===p.loc)return A({t:"end"},"รอที่"+LOC[tgt].n+" จบเทิร์น");
+ const pth=path(G,p.loc,tgt);
+ if(!pth||!pth.length)return A({t:"end"},"ไม่มีเส้นทางไป"+LOC[tgt].n+" จบเทิร์น");
+ if(!check(G,p,"move",{to:pth[0]}))return A({t:"move",to:pth[0]},why);
+ return A({t:"end"},"แอคชันหมด จบเทิร์น");
+}
+
+/* ============ 4. AUDIO ============ */
+const AUD={ctx:null,m:null,on:true,mt:null,st:0,nb:null};
+AUD.unlock=function(){
+ try{
+  if(!this.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+   this.ctx=new C();this.m=this.ctx.createGain();this.m.gain.value=this.on?0.8:0;this.m.connect(this.ctx.destination);
+   const n=this.ctx.sampleRate*2,b=this.ctx.createBuffer(1,n,this.ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;this.nb=b;this.ambient()}
+  if(this.ctx.state==="suspended")this.ctx.resume();
+  if(!this.mt)this.mt=setInterval(()=>this.music(),520);
+ }catch(e){}
+};
+AUD.ambient=function(){
+ const c=this.ctx;
+ const mk=(type,f,q,v,lf,lv)=>{const s=c.createBufferSource();s.buffer=this.nb;s.loop=true;const fl=c.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=q;const g=c.createGain();g.gain.value=v;const o=c.createOscillator();o.frequency.value=lf;const og=c.createGain();og.gain.value=lv;o.connect(og);og.connect(g.gain);s.connect(fl);fl.connect(g);g.connect(this.m);s.start();o.start()};
+ mk("lowpass",420,0.7,0.05,0.11,0.035);
+ mk("bandpass",900,0.9,0.012,0.07,0.01);
+};
+AUD.tone=function(f,d,type,v,delay,to){
+ if(!this.ctx||!this.on)return;const c=this.ctx,t=c.currentTime+(delay||0),o=c.createOscillator(),g=c.createGain();
+ o.type=type||"sine";o.frequency.setValueAtTime(f,t);if(to)o.frequency.exponentialRampToValueAtTime(to,t+d);
+ g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v||0.15,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+ o.connect(g);g.connect(this.m);o.start(t);o.stop(t+d+0.05);
+};
+AUD.noise=function(d,f,v,delay){
+ if(!this.ctx||!this.on)return;const c=this.ctx,t=c.currentTime+(delay||0),s=c.createBufferSource();s.buffer=this.nb;
+ const fl=c.createBiquadFilter();fl.type="lowpass";fl.frequency.value=f;const g=c.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+ s.connect(fl);fl.connect(g);g.connect(this.m);s.start(t);s.stop(t+d+0.05);
+};
+AUD.music=function(){
+ if(!this.on||!this.ctx||this.ctx.state!=="running")return;
+ const sc=[220,261.6,293.7,329.6,392,440,523.3],pat=[0,2,4,2,5,4,2,1],i=this.st++;
+ this.tone(sc[pat[i%8]],1.1,"triangle",0.04);
+ if(i%8===0)this.tone(110,3.6,"sine",0.06);
+ if(i%8===4)this.tone(130.8,3,"sine",0.05);
+};
+AUD.setOn=function(v){this.on=v;if(this.m)this.m.gain.setTargetAtTime(v?0.8:0,this.ctx.currentTime,0.05);saveSet({music:v});const t="ดนตรี: "+(v?"เปิด":"ปิด");$("btnMusic").textContent=t;$("btnMusic2").textContent=t};
+function sfx(n){
+ const A=AUD;if(!A.ctx||!A.on)return;
+ switch(n){
+ case "click":A.tone(660,0.07,"square",0.05);break;
+ case "move":A.noise(0.09,900,0.12);A.noise(0.09,700,0.1,0.14);A.tone(160,0.08,"triangle",0.06);break;
+ case "gather":A.tone(520,0.1,"triangle",0.1);A.tone(780,0.14,"triangle",0.1,0.08);break;
+ case "card":[440,554,659,880].forEach((f,i)=>A.tone(f,0.2,"sine",0.1,i*0.07));break;
+ case "storm":A.noise(1.4,500,0.35);A.tone(70,1.2,"sawtooth",0.1,0,40);break;
+ case "ignite":[392,523,659,784,1046].forEach((f,i)=>A.tone(f,0.5,"sine",0.12,i*0.12));A.noise(0.8,3000,0.06,0.2);break;
+ case "rescue":[659,784,988].forEach((f,i)=>A.tone(f,0.35,"sine",0.12,i*0.1));break;
+ case "win":[523,659,784,1046,784,1046,1318].forEach((f,i)=>A.tone(f,0.5,"triangle",0.14,i*0.2));break;
+ case "lose":[330,277,220,165].forEach((f,i)=>A.tone(f,0.6,"sawtooth",0.09,i*0.28));break;
+ case "err":A.tone(130,0.2,"sawtooth",0.08);break;
+ }
+}
+
+/* ============ 5. PARTICLES ============ */
+const PX={c:null,g:null,ps:[],mo:[]};
+function pxInit(){
+ PX.c=$("fx");PX.g=PX.c.getContext("2d");
+ const rs=()=>{PX.c.width=innerWidth;PX.c.height=innerHeight};rs();addEventListener("resize",rs);
+ for(let i=0;i<34;i++)PX.mo.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*2+.6,v:Math.random()*.3+.1,p:Math.random()*6});
+ if(!RM)requestAnimationFrame(pxLoop);
+}
+function pxLoop(t){
+ const g=PX.g,W=PX.c.width,H=PX.c.height;g.clearRect(0,0,W,H);
+ PX.mo.forEach(m=>{m.y-=m.v;m.x+=Math.sin(t/1500+m.p)*.2;if(m.y<-5){m.y=H+5;m.x=Math.random()*W}g.fillStyle="rgba(150,235,255,.35)";g.beginPath();g.arc(m.x,m.y,m.r,0,6.3);g.fill()});
+ PX.ps=PX.ps.filter(q=>q.l>0);
+ PX.ps.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.vy+=0.04;q.l-=0.018;g.globalAlpha=Math.max(0,q.l);g.fillStyle=q.c;g.beginPath();g.arc(q.x,q.y,3,0,6.3);g.fill()});
+ g.globalAlpha=1;requestAnimationFrame(pxLoop);
+}
+function locScreen(id){try{const m=$("map"),pt=m.createSVGPoint();pt.x=LOC[id].x;pt.y=LOC[id].y;const c=m.getScreenCTM();return c?pt.matrixTransform(c):null}catch(e){return null}}
+function burst(loc,col){if(RM)return;const s=locScreen(loc);if(!s)return;for(let i=0;i<22;i++){const a=Math.random()*6.3,v=Math.random()*3+1;PX.ps.push({x:s.x,y:s.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1.5,l:1,c:col})}}
+
+/* ============ 6. MAP / RENDER ============ */
+const M={built:false,tok:{},lamp:{},glow:{},gX:null,gMark:null,gHl:null,gTok:null,gFx:null};
+function sv(tag,attrs,parent){const e=document.createElementNS("http://www.w3.org/2000/svg",tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function frag(str,parent){const d=new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">'+str+"</svg>","image/svg+xml");Array.from(d.documentElement.childNodes).forEach(n=>parent.appendChild(document.importNode(n,true)))}
+function buildMap(){
+ if(M.built)return;M.built=true;
+ const m=$("map"),defs=sv("defs",{},m);
+ frag('<radialGradient id="ocean" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#1d7aa0"/><stop offset="1" stop-color="#091640"/></radialGradient><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>',defs);
+ sv("rect",{width:1000,height:700,fill:"url(#ocean)"},m);
+ for(let i=0;i<7;i++){const w=sv("path",{d:"M-40 "+(60+i*100)+" q40 -22 80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0",fill:"none",stroke:"rgba(160,230,255,.18)","stroke-width":3,class:"wv"},m);w.style.animationDelay=(-i*1.3)+"s"}
+ const gR=sv("g",{},m);
+ EDGES.forEach(e=>{const a=LOC[e[0]],b=LOC[e[1]];
+  sv("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:"#0a1030","stroke-width":9,opacity:.35,"stroke-linecap":"round"},gR);
+  sv("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:"#f0e1b8","stroke-width":4,"stroke-dasharray":"3 9","stroke-linecap":"round",opacity:.85},gR)});
+ const gI=sv("g",{},m);
+ Object.keys(LOC).forEach(id=>{const L=LOC[id];
+  sv("ellipse",{cx:L.x,cy:L.y+6,rx:60,ry:46,fill:ISL[L.t],opacity:.92,stroke:"#0a1030","stroke-width":2},gI);
+  sv("ellipse",{cx:L.x,cy:L.y,rx:48,ry:36,fill:"rgba(255,255,255,.12)"},gI)});
+ M.gX=sv("g",{},m);
+ const gN=sv("g",{},m);
+ Object.keys(LOC).forEach(id=>{const L=LOC[id];
+  const g=sv("g",{transform:"translate("+L.x+","+L.y+")",style:"cursor:pointer"},gN);
+  if(L.t==="lh")M.glow[id]=sv("circle",{cx:0,cy:-24,r:34,fill:"#ffe27a",filter:"url(#glow)",class:"glow"},g);
+  frag(ART[L.t],g);
+  if(L.t==="lh")M.lamp[id]=sv("circle",{cx:0,cy:-22,r:8,fill:"#555",stroke:"#222","stroke-width":2},g);
+  const tx=sv("text",{y:70,"text-anchor":"middle","font-size":18,fill:"#fff","font-weight":700,style:"paint-order:stroke;stroke:#0a1030;stroke-width:5px"},g);tx.textContent=L.n;
+  sv("circle",{r:56,fill:"transparent"},g);
+  g.addEventListener("click",()=>onMapClick(id))});
+ M.gMark=sv("g",{},m);M.gHl=sv("g",{},m);M.gTok=sv("g",{},m);M.gFx=sv("g",{},m);
+}
+function resetMap(){if(!M.built)return;clear(M.gTok);M.tok={};clear(M.gFx)}
+function renderMap(G){
+ clear(M.gX);clear(M.gMark);clear(M.gHl);
+ G.closed.forEach(k=>{const e=k.split("-"),a=LOC[e[0]],b=LOC[e[1]];
+  sv("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:"#e0525c","stroke-width":6,"stroke-dasharray":"10 8","stroke-linecap":"round"},M.gX);
+  const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+  sv("line",{x1:mx-9,y1:my-9,x2:mx+9,y2:my+9,stroke:"#fff","stroke-width":5},M.gX);
+  sv("line",{x1:mx-9,y1:my+9,x2:mx+9,y2:my-9,stroke:"#fff","stroke-width":5},M.gX)});
+ LHS.forEach(l=>{const on=!!G.lit[l];M.lamp[l].setAttribute("fill",on?"#ffe27a":"#555");M.glow[l].classList.toggle("on",on)});
+ Object.keys(G.surv).forEach(k=>{if(G.surv[k]!=="vis")return;const L=LOC[k];
+  sv("circle",{cx:L.x+40,cy:L.y-32,r:13,fill:"#6fe8ff",stroke:"#fff","stroke-width":2},M.gMark);
+  sv("circle",{cx:L.x+36,cy:L.y-35,r:3.5,fill:"#134a66"},M.gMark);sv("circle",{cx:L.x+44,cy:L.y-35,r:3.5,fill:"#134a66"},M.gMark);
+  sv("path",{d:"M"+(L.x+31)+" "+(L.y-24)+" q9 -10 18 0",stroke:"#134a66","stroke-width":3,fill:"none"},M.gMark)});
+ if(G.fog)Object.keys(LOC).forEach(k=>{if(LOC[k].ex)sv("ellipse",{cx:LOC[k].x,cy:LOC[k].y,rx:56,ry:42,fill:"rgba(235,240,250,.4)"},M.gMark)});
+ if(G.guard)sv("circle",{cx:LOC[G.guard].x,cy:LOC[G.guard].y,r:54,fill:"none",stroke:"#6fe8ff","stroke-width":3,opacity:.8},M.gMark);
+ const p=me();
+ if(myTurn()&&p)neighbors(G,p.loc).forEach(k=>sv("circle",{cx:LOC[k].x,cy:LOC[k].y,r:58,class:"hl"},M.gHl));
+ const by={};G.players.forEach(q=>{(by[q.loc]=by[q.loc]||[]).push(q)});
+ Object.keys(by).forEach(l=>{by[l].forEach((q,i,arr)=>{
+  let t=M.tok[q.id];
+  if(!t){t=sv("g",{class:"tok"},M.gTok);sv("circle",{r:14,fill:CH[q.char].col,stroke:"#fff","stroke-width":3},t);
+   const tx=sv("text",{y:5,"text-anchor":"middle","font-size":14,"font-weight":700,fill:"#fff",style:"paint-order:stroke;stroke:#000;stroke-width:3px"},t);tx.textContent=String(q.id+1);M.tok[q.id]=t}
+  const ox=(i-(arr.length-1)/2)*30;
+  t.style.transform="translate("+(LOC[l].x+ox)+"px,"+(LOC[l].y+36)+"px)";
+  t.classList.toggle("cur",!G.over&&G.players[G.cur]===q)})});
+}
+function neighbors(G,l){return ADJ[l].filter(x=>!isClosed(G,l,x))}
+function ignite(loc){if(!M.gFx)return;const L=LOC[loc];const c=sv("circle",{cx:L.x,cy:L.y-24,r:20,class:"ring"},M.gFx);setTimeout(()=>{if(c.parentNode)c.parentNode.removeChild(c)},1500);burst(loc,"#ffe27a")}
+function playWin(){
+ if(!M.gFx)return;
+ LHS.forEach((l,i)=>{const a=LOC[l],b=LOC.HB;const ln=sv("line",{x1:a.x,y1:a.y-24,x2:b.x,y2:b.y-10,class:"beam"},M.gFx);ln.style.animationDelay=(i*0.35)+"s"});
+ const c=sv("circle",{cx:LOC.HB.x,cy:LOC.HB.y,r:60,fill:"#ffe27a",opacity:"0.5"},M.gFx);
+ c.style.transformBox="fill-box";c.style.transformOrigin="center";c.style.transition="transform 2.6s ease-out,opacity 2.6s";
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.transform="scale(9)";c.style.opacity="0.12"}));
+ [[-80,640,470,430],[1080,690,760,380],[500,780,520,520]].forEach((s,i)=>{
+  const g=sv("g",{},M.gFx);frag('<path d="M-18 0 H18 L12 14 H-12Z" fill="#8a5a2a"/><rect x="-1" y="-24" width="2" height="24" fill="#5a3a18"/><polygon points="1,-22 1,-4 16,-4" fill="#f0e1b8"/>',g);
+  g.style.transform="translate("+s[0]+"px,"+s[1]+"px)";g.style.transition="transform 3.2s ease-out";
+  setTimeout(()=>{g.style.transform="translate("+s[2]+"px,"+s[3]+"px)"},60+i*200)});
+ PX.ps.length=0;LHS.concat(["HB"]).forEach(l=>burst(l,"#ffe27a"));
+}
+function me(){return S.G&&S.G.players[S.myId]}
+function myTurn(){const G=S.G;return !!G&&!G.over&&G.players[G.cur]===me()}
+function costStr(c){return Object.keys(c).map(k=>RN[k]+" "+c[k]).join(", ")}
+function locInfo(id){
+ const L=LOC[id],G=S.G;let s=L.n+": ";
+ if(L.res)s+="เก็บ"+RN[L.res]+"ได้ ";if(L.ex)s+="สำรวจสมบัติได้ ";
+ if(LH[id])s+="ต้องใช้ "+costStr(LH[id])+(G.lit[id]?" (สว่างแล้ว)":"");
+ if(id==="HB")s+="จุดเริ่มต้น และจุดประภาคารสุดท้าย (คริสตัล 3 เสบียง 3 ทุกคนต้องอยู่ที่นี่)";
+ if(G.surv[id]==="vis")s+=" มีผู้รอดชีวิตรอการช่วย";
+ return s;
+}
+function onMapClick(id){
+ const G=S.G;if(!G)return;const p=me();
+ if(myTurn()&&ADJ[p.loc].indexOf(id)>=0){
+  const why=check(G,p,"move",{to:id});if(why){hint(why);sfx("err");return}
+  dispatch({t:"move",to:id});return;
+ }
+ hint(locInfo(id));
+}
+function repairReason(G,p){
+ const base=check(G,p,"repair",{});if(!base)return "";
+ if(LHS.indexOf(p.loc)<0||G.lit[p.loc])return base;
+ const ks=Object.keys(LH[p.loc]);
+ const eo=[undefined].concat(p.char==="eng"?ks:[]),to=[undefined].concat(G.toolkit>0?ks:[]);
+ for(const e of eo)for(const t of to){if(!check(G,p,"repair",{rEng:e,rTool:t}))return ""}
+ return base;
+}
+function reasonFor(kind){
+ const G=S.G,p=me();
+ if(G.over)return "เกมจบแล้ว";
+ if(G.players[G.cur]!==p)return "ยังไม่ถึงตาของคุณ";
+ if(kind==="end")return G.pend?"ต้องเลือกลำดับพายุก่อน":"";
+ if(kind==="move"){const nb=neighbors(G,p.loc);if(!nb.length)return "ทุกเส้นทางถูกปิด";let r="";for(const x of nb){r=check(G,p,"move",{to:x});if(!r)return ""}return r}
+ if(kind==="repair")return repairReason(G,p);
+ if(kind==="special")return p.char==="mag"?check(G,p,"special",{k:"peek"}):"ความสามารถอัตโนมัติ (แตะเพื่อดูคำอธิบาย)";
+ return check(G,p,kind,{});
+}
+const BTNDESC={move:"เดิน 1 แอคชัน: แตะสถานที่ที่มีวงสีฟ้าบนแผนที่",gather:"เก็บทรัพยากร +2 ที่จุดผลิต",explore:"จั่วการ์ดสมบัติ (ที่หมู่บ้านร้าง/ป่าหมอก/ซากโบราณ)",repair:"จ่ายทรัพยากรจุดประภาคารที่ยืนอยู่",rescue:"ช่วยผู้รอดชีวิต +2 เสบียง พายุ -1",final:"จ่ายคริสตัล 3 เสบียง 3 ที่ท่าเรือเมื่อทุกคนอยู่ครบ",special:"ความสามารถพิเศษของตัวละคร",end:"จบเทิร์น (แอคชันที่เหลือหมดอายุ)"};
+function render(){
+ const G=S.G;if(!G)return;
+ if(S.gid!==G.gid){S.gid=G.gid;S.seen=G.fxN;resetMap();S.endShown=false;clearTimeout(S.endTimer);S.endTimer=null;S.cq=[];if(S.screen!=="scr-game")go("scr-game")}
+ buildMap();
+ $("tRound").textContent=G.round;$("tMax").textContent=G.max;
+ const st=$("stormTrack");if(!st.children.length)for(let i=0;i<8;i++)st.appendChild(el("i"));
+ Array.from(st.children).forEach((c,i)=>{c.className=i<G.storm?(i>=5?"on dg":"on"):""});
+ const lp=$("lhProg");if(!lp.children.length)for(let i=0;i<4;i++)lp.appendChild(el("b"));
+ Array.from(lp.children).forEach((c,i)=>{c.classList.toggle("lit",!!G.lit[LHS[i]]);c.title=LOC[LHS[i]].n});
+ RES.forEach(k=>{$(RID[k]).textContent=G.res[k]});
+ $("roomBadge").textContent=S.mode==="solo"?"":("ห้อง "+NET.code+(S.mode==="client"&&!NET.joined?" · ขาดการเชื่อมต่อ — กำลังลองใหม่":""));
+ const pl=$("players");clear(pl);
+ G.players.forEach((p,i)=>{
+  const r=el("div","pl"+(i===G.cur&&!G.over?" cur":""));
+  const pv=el("span");pv.style.cssText="width:26px;height:26px;flex:0 0 26px";pv.innerHTML=portrait(p.char);r.appendChild(pv);
+  const t=el("div");t.style.flex="1";
+  t.appendChild(el("div","",(i+1)+". "+p.name+(i===S.myId?" (คุณ)":"")+(p.bot?" [บอท]":"")));
+  t.appendChild(el("div","",CH[p.char].n.split(" ")[0]+" · "+LOC[p.loc].n+(i===G.cur?" · AP "+p.ap:"")));
+  r.appendChild(t);
+  const on=p.online!==false,re=!on&&Date.now()-(p.downAt||0)<20000;
+  const d=el("span","dot "+(on?"on":re?"re":"off"));d.title=on?"ออนไลน์":re?"กำลังเชื่อมต่อใหม่":"ออฟไลน์";r.appendChild(d);
+  pl.appendChild(r)});
+ const lgE=$("log");clear(lgE);G.log.slice(-60).forEach(x=>lgE.appendChild(el("div","",x.t)));lgE.scrollTop=lgE.scrollHeight;
+ const cp=G.players[G.cur]||G.players[0],ci=$("curInfo");clear(ci);
+ const pv=el("span","pv");pv.innerHTML=portrait(cp.char);ci.appendChild(pv);
+ ci.appendChild(el("b","",(G.over?"จบเกม":"ตาของ "+cp.name)+" · "+CH[cp.char].n.split(" ")[0]));
+ ci.appendChild(el("span","tag","แอคชัน "+cp.ap+"/2"+(cp.free?" · เดินฟรี "+cp.free:"")+(cp.pen?" · หลบพายุ":"")));
+ const tags=[];
+ if(G.fog)tags.push("หมอก: ห้ามสำรวจ");if(G.ward)tags.push("ผนึกป้องพายุ");if(G.toolkit)tags.push("ชุดเครื่องมือ");
+ if(G.guard)tags.push("ปกป้อง: "+LOC[G.guard].n);if(G.dark)tags.push("เมฆดำ");if(G.cancelArmed)tags.push("เตรียมยกเลิกพายุ");
+ if(G.peek&&G.peek.length)tags.push("พายุถัดไป: "+G.peek.map(x=>SM[x].n).join(" > "));
+ tags.push("สำรวจ/เก็บ: "+CH[cp.char].ab);
+ tags.forEach(x=>ci.appendChild(el("span","tag",x)));
+ document.querySelectorAll("#actions .btn").forEach(b=>{
+  const k=b.dataset.act,why=reasonFor(k);b.classList.toggle("off",!!why);b.title=why||BTNDESC[k];b.dataset.why=why});
+ if(Date.now()>S.hintUntil){const p=me();$("hint").textContent=myTurn()?"ตาของคุณ — "+locInfo(p.loc):(G.over?"":"รอ "+cp.name+" เล่น...")}
+ renderMap(G);
+ (G.fx||[]).forEach(f=>{if(f.n<=S.seen)return;S.seen=f.n;playFx(G,f)});
+ if(G.pend&&G.pend.pid===S.myId&&!S.ask){S.ask=1;const t=G.peek||[];
+  choose("แผนที่ลึกลับ: พายุถัดไป 1) "+(t[0]?SM[t[0]].n:"-")+"  2) "+(t[1]?SM[t[1]].n:"-")+" — สลับลำดับหรือไม่?",[{l:"คงเดิม",v:"0"},{l:"สลับลำดับ",v:"1"}],v=>{S.ask=0;dispatch({t:"mapOrder",swap:v==="1"})})}
+ if(G.over&&!S.endTimer){sfx(G.over.win?"win":"lose");if(G.over.win)playWin();S.endTimer=setTimeout(showEnd,G.over.win?3400:900)}
+}
+function playFx(G,f){
+ const pl=G.players[f.pid];
+ if(f.type==="move")sfx("move");
+ else if(f.type==="gather"){sfx("gather");burst(f.loc,"#6fe8ff")}
+ else if(f.type==="rescue"){sfx("rescue");burst(f.loc,"#6fe8ff");toast("ช่วยผู้รอดชีวิตที่"+LOC[f.loc].n+" สำเร็จ! พายุลดลง")}
+ else if(f.type==="card")queueCard("t",f.id,pl?pl.name:"");
+ else if(f.type==="storm")queueCard("s",f.id,"");
+ else if(f.type==="ignite"){sfx("ignite");ignite(f.loc)}
+}
+function queueCard(k,id,who){S.cq.push({k:k,id:id,who:who});if(!S.cardOpen)nextCard()}
+function nextCard(){
+ const c=S.cq.shift();if(!c){S.cardOpen=false;$("mdCard").classList.remove("active");schedBot();return}
+ S.cardOpen=true;S.busy++;
+ const d=c.k==="t"?TM[c.id]:SM[c.id],ce=$("cardEl");
+ ce.className="card"+(c.k==="s"?" storm":"");
+ $("cardTitle").textContent=(c.k==="s"?"พายุ: ":"สมบัติ: ")+d.n;
+ $("cardArt").innerHTML=icon(d.i);
+ $("cardText").textContent=d.d+(c.who?" (พบโดย "+c.who+")":"");
+ $("mdCard").classList.add("active");
+ sfx(c.k==="s"?"storm":"card");
+ setTimeout(()=>ce.classList.add("flip"),60);
+ clearTimeout(S.cardT);S.cardT=setTimeout(closeCard,3200);
+}
+function closeCard(){if(!S.cardOpen)return;clearTimeout(S.cardT);$("cardEl").classList.remove("flip");S.busy=Math.max(0,S.busy-1);S.cardOpen=false;setTimeout(nextCard,120)}
+function showEnd(){
+ const G=S.G;if(!G||!G.over||S.endShown)return;S.endShown=true;
+ const o=G.over,lit=LHS.filter(l=>G.lit[l]).length;
+ $("endTitle").textContent=o.win?"ชัยชนะ! แสงสุดท้ายสว่างไสว":"ความมืดกลืนหมู่เกาะ";
+ const b=$("endBody");clear(b);
+ const ach=o.win?"ผู้พิทักษ์ประภาคาร":["แสงริบหรี่","ประกายแรก","ใกล้ถึงฝั่ง","เกือบสำเร็จ","เกือบสำเร็จ"][lit];
+ [o.win?"ทีมทั้งหมดร่วมกันจุดประภาคารสุดท้ายสำเร็จ เรือกู้ภัยแล่นเข้าสู่ท่าเรือกลาง":"สาเหตุ: "+o.reason,
+  "ประภาคารที่จุดแล้ว: "+lit+"/4","รอบที่รอดมา: "+G.round+"/"+G.max,"ผู้รอดชีวิตที่ช่วยได้: "+G.rescued+"/3","ระดับพายุสุดท้าย: "+G.storm+"/8",
+  "ทรัพยากรคงเหลือ: "+RES.map(k=>RN[k]+" "+G.res[k]).join(" · "),"ฉายาทีม: "+ach,
+  "สมาชิกทีม (เท่าเทียมกันทุกคน): "+G.players.map(p=>p.name+" ("+CH[p.char].n.split(" ")[0]+")").join(", ")].forEach(t=>b.appendChild(el("p","",t)));
+ go("scr-end");
+}
+
+/* ============ 7. CONTROL ============ */
+function dispatch(a){
+ a.pid=S.myId;a.aid=uid();
+ if(S.mode==="client"){
+  if(NET.hostConn&&NET.hostConn.open&&NET.joined)safeSend(NET.hostConn,{t:"act",a:a});
+  else{toast("ขาดการเชื่อมต่อกับโฮสต์ — ส่งคำสั่งไม่ได้");sfx("err")}
+  return;
+ }
+ const r=apply(S.G,a);if(!r.ok){toast(r.msg);sfx("err");return}
+ afterChange();
+}
+function persist(){
+ try{const G=S.G;if(!G)return;
+  if(S.mode==="solo"){if(G.over)localStorage.removeItem("lb_solo");else localStorage.setItem("lb_solo",JSON.stringify(G))}
+  else if(S.mode==="host")localStorage.setItem("lb_host",JSON.stringify({code:NET.code,G:G}))}catch(e){}
+}
+function afterChange(){persist();if(S.mode==="host")broadcast();render();schedBot()}
+function schedBot(){
+ clearTimeout(S.bt);const G=S.G;
+ if(!G||G.over||S.mode==="client"||S.mode===null)return;
+ const p=curP(G);if(!p||!p.bot)return;
+ S.bt=setTimeout(botTick,S.busy>0?500:(G.diff==="easy"?950:700));
+}
+function botTick(){
+ const G=S.G;if(!G||G.over||S.mode==="client")return;
+ const p=curP(G);if(!p.bot)return;
+ if(S.busy>0||S.ask){schedBot();return}
+ const pl=botPlan(G,p);
+ if(pl.a.t!=="end")lg(G,"["+p.name+"] "+pl.why);
+ let r=apply(G,Object.assign({pid:p.id},pl.a));
+ if(!r.ok)r=apply(G,{t:"end",pid:p.id});
+ afterChange();
+}
+function onAct(k){
+ const G=S.G,p=me();if(!G||!p)return;
+ if(G.over)return;
+ if(G.players[G.cur]!==p){hint("ยังไม่ถึงตาของคุณ");sfx("err");return}
+ if(k==="move"){hint(BTNDESC.move);return}
+ if(k==="repair"){startRepair();return}
+ if(k==="special"){startSpecial();return}
+ const why=check(G,p,k,{});if(why){hint(why);sfx("err");return}
+ dispatch({t:k});
+}
+function startRepair(){
+ const G=S.G,p=me();
+ if(LHS.indexOf(p.loc)<0||G.lit[p.loc]){hint(check(G,p,"repair",{})||"ซ่อมไม่ได้");sfx("err");return}
+ const cost=LH[p.loc],keys=Object.keys(cost),a={t:"repair"};
+ const opts=()=>keys.map(k=>({l:RN[k]+" ("+cost[k]+")",v:k}));
+ const askEng=cb=>{if(p.char==="eng")choose("วิศวกร: เลือกทรัพยากรที่จะลดต้นทุนลง 1",opts(),v=>{a.rEng=v;cb()});else cb()};
+ const askTool=cb=>{if(G.toolkit>0)choose("ชุดเครื่องมือโบราณ: ใช้ลดต้นทุน 1 หรือไม่",opts().concat([{l:"ไม่ใช้",v:""}]),v=>{if(v)a.rTool=v;cb()});else cb()};
+ askEng(()=>askTool(()=>{const why=check(G,p,"repair",a);if(why){hint(why);sfx("err");return}dispatch(a)}));
+}
+function startSpecial(){
+ const G=S.G,p=me();
+ if(p.char!=="mag"){hint(CH[p.char].n+": "+CH[p.char].ab);return}
+ const o=[{l:"ส่องพายุใบถัดไป (ฟรี)",v:"peek"}];
+ if(!G.mageUsed&&!G.cancelArmed)o.push({l:"เตรียมยกเลิกผลร้ายพายุครั้งถัดไป (ครั้งเดียวต่อเกม)",v:"cancel"});
+ choose("พลังจอมเวทพยากรณ์",o,v=>{const why=check(G,p,"special",{k:v});if(why){hint(why);return}dispatch({t:"special",k:v})});
+}
+function newSolo(){
+ const c=S.cfg,others=shuffle(CHL.filter(x=>x!==c.char));
+ const pl=[{name:loadSet().name||"คุณ",char:c.char,bot:false}];
+ for(let i=1;i<c.count;i++)pl.push({name:"บอท "+i,char:others[i-1],bot:true});
+ S.G=newGame({players:pl,diff:c.diff});S.mode="solo";S.myId=0;S.gid=null;go("scr-game");afterChange();
+}
+function restartGame(){
+ if(S.mode==="solo"){newSolo();return}
+ if(S.mode==="host"){
+  const pl=NET.seats.map(s=>({name:s.name,char:s.char,bot:false}));
+  S.G=newGame({players:pl,diff:"normal"});S.G.players.forEach((p,i)=>{p.online=NET.seats[i].online});S.gid=null;afterChange();return;
+ }
+ toast("เฉพาะโฮสต์เท่านั้นที่เริ่มเกมใหม่ได้ — รอโฮสต์");
+}
+
+/* ============ 8. NETWORK (PeerJS, host-authoritative) ============ */
+const safeSend=(c,m)=>{try{if(c&&c.open)c.send(m)}catch(e){}};
+function netMsg(t,err){const e=$("netStatus");e.textContent=t;e.style.color=err?"#a01020":"#134a66"}
+function ice(){let t=[];try{t=JSON.parse(localStorage.getItem("lb_turn")||"[]")}catch(e){}return CFG.stun.concat(Array.isArray(t)?t:[])}
+function peerOpts(){const o={config:{iceServers:ice()},debug:0};if(CFG.peerServer)Object.assign(o,CFG.peerServer);return o}
+function rndCode(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
+function closeNet(){
+ NET.sid++;clearInterval(NET.hb);clearTimeout(NET.rt);clearTimeout(NET.jt);
+ try{if(NET.peer)NET.peer.destroy()}catch(e){}
+ NET.peer=null;NET.hostConn=null;NET.joined=false;
+}
+function leaveNet(){closeNet();NET.seats=[];NET.lobby=[];NET.isHost=false;if(S.mode==="host"||S.mode==="client"){S.mode=null;S.G=null;S.gid=null}clearTimeout(S.bt)}
+function inviteLink(){return location.origin+location.pathname+"?room="+NET.code}
+function pub(s){return{id:s.id,name:s.name,char:s.char,online:s.online}}
+function broadcastLobby(){
+ NET.lobby=NET.seats.map(pub);
+ NET.seats.forEach(s=>{if(s.conn&&s.online)safeSend(s.conn,{t:"lobby",seats:NET.lobby,code:NET.code})});
+ renderLobby();
+}
+function broadcast(){
+ if(!NET.isHost)return;
+ if(S.G){const v=viewOf(S.G);NET.seats.forEach(s=>{if(s.conn&&s.online)safeSend(s.conn,{t:"state",G:v})})}
+ else broadcastLobby();
+}
+function renderLobby(){
+ const list=$("lobbyList");clear(list);
+ NET.lobby.forEach(s=>{const r=el("div");const d=el("span","dot "+(s.online?"on":"off"));r.appendChild(d);
+  r.appendChild(el("span","",s.name+(s.id===0?" (โฮสต์)":"")+" — "+(s.char?CH[s.char].n:"ยังไม่เลือกตัวละคร")+" — "+(s.online?"ออนไลน์":"ออฟไลน์")));list.appendChild(r)});
+ const mine=NET.lobby.find(s=>s.id===S.myId);
+ const taken=new Set(NET.lobby.filter(s=>s.char&&s.id!==S.myId).map(s=>s.char));
+ markGrid($("lobbyChars"),mine?mine.char:null,taken);
+ const hs=$("btnHostStart");hs.style.display=NET.isHost?"":"none";
+ const ready=NET.lobby.length>=2&&NET.lobby.every(s=>s.char&&s.online);
+ hs.classList.toggle("off",!ready);
+ $("roomCode").textContent=NET.code||"";$("btnCopyLink").style.display=NET.isHost&&NET.code?"":"none";
+}
+function pickChar(id){
+ if(NET.isHost){const s=NET.seats[0];if(NET.seats.some(x=>x!==s&&x.char===id)){toast("ตัวละครนี้ถูกเลือกแล้ว");return}s.char=id;broadcastLobby()}
+ else if(NET.joined)safeSend(NET.hostConn,{t:"pick",char:id});
+ else toast("ยังไม่ได้เชื่อมต่อห้อง");
+}
+function seatOf(c){return NET.seats.find(s=>s.conn===c)}
+function setOnline(id,v){
+ const s=NET.seats[id];if(!s)return;s.online=v;
+ if(S.G){const p=S.G.players[id];p.online=v;if(!v)p.downAt=Date.now();afterChange()}else broadcastLobby();
+}
+function hostConn(c){
+ c.on("data",m=>hostMsg(c,m));
+ const left=()=>{const s=seatOf(c);if(s&&s.conn===c&&s.online)setOnline(s.id,false)};
+ c.on("close",left);c.on("error",left);
+}
+function hostMsg(c,m){
+ if(!m||typeof m!=="object")return;
+ if(m.t==="hello"){
+  const nm=cleanName(m.name);
+  if(!nm)return safeSend(c,{t:"err",msg:"ชื่อไม่ถูกต้อง",fatal:1});
+  let s=NET.seats.find(x=>x.name.toLowerCase()===nm.toLowerCase());
+  if(s){
+   if(s.id===0)return safeSend(c,{t:"err",msg:"ชื่อนี้เป็นของโฮสต์",fatal:1});
+   if(s.conn&&s.conn!==c&&s.online&&Date.now()-s.seen<12000)return safeSend(c,{t:"err",msg:"ชื่อนี้กำลังออนไลน์อยู่ (ถ้าเพิ่งหลุด รอสักครู่แล้วลองใหม่)",retry:1});
+   if(s.conn&&s.conn!==c){try{s.conn.close()}catch(e){}}
+  }else{
+   if(S.G)return safeSend(c,{t:"err",msg:"เกมเริ่มแล้ว ไม่มีที่นั่งสำหรับชื่อนี้ (ต้องใช้ชื่อเดิมเพื่อกลับเข้าเกม)",fatal:1});
+   if(NET.seats.length>=6)return safeSend(c,{t:"err",msg:"ห้องเต็ม (สูงสุด 6 คน)",fatal:1});
+   s={id:NET.seats.length,name:nm,char:null,conn:null,online:false,seen:0};NET.seats.push(s);
+  }
+  s.conn=c;s.seen=Date.now();
+  safeSend(c,{t:"welcome",id:s.id,code:NET.code});
+  setOnline(s.id,true);
+  if(S.G)safeSend(c,{t:"state",G:viewOf(S.G)});
+  return;
+ }
+ const s=seatOf(c);if(!s)return;
+ s.seen=Date.now();
+ if(m.t==="ping")return safeSend(c,{t:"pong"});
+ if(m.t==="pick"){
+  if(S.G)return;
+  if(!CH[m.char])return;
+  if(NET.seats.some(x=>x!==s&&x.char===m.char))return safeSend(c,{t:"err",msg:"ตัวละครนี้ถูกเลือกแล้ว"});
+  s.char=m.char;broadcastLobby();return;
+ }
+ if(m.t==="act"){
+  if(!S.G)return;const a=m.a;
+  if(!a||typeof a!=="object"||typeof a.aid!=="string")return safeSend(c,{t:"err",msg:"คำสั่งไม่ถูกต้อง"});
+  if(NET.seen[a.aid])return;NET.seen[a.aid]=1;if(Object.keys(NET.seen).length>600)NET.seen={};
+  const act={t:String(a.t),pid:s.id,k:a.k,to:a.to,rEng:a.rEng,rTool:a.rTool,swap:!!a.swap};
+  const r=apply(S.G,act);
+  if(!r.ok){safeSend(c,{t:"err",msg:r.msg});return}
+  afterChange();
+ }
+}
+function hostBeat(){
+ const now=Date.now();
+ NET.seats.forEach(s=>{if(s.id!==0&&s.online&&now-s.seen>12000)setOnline(s.id,false)});
+ if(S.G)persist();
+}
+function hostCreate(){
+ if(typeof Peer==="undefined"){netMsg("โหลดไลบรารี PeerJS ไม่สำเร็จ (ต้องออนไลน์เพื่อโหลดจาก CDN) — ออนไลน์ P2P ใช้งานไม่ได้ตอนนี้",1);return}
+ const name=cleanName($("inName").value);if(!name){netMsg("กรุณาใส่ชื่อผู้เล่นก่อน",1);return}
+ let code=$("inRoom").value.toUpperCase().replace(/[^A-Z0-9]/g,"");if(code.length!==5)code=rndCode();
+ closeNet();const sid=NET.sid;NET.isHost=true;NET.code=code;NET.name=name;saveSet({name:name});
+ netMsg("กำลังเชื่อมต่อเซิร์ฟเวอร์สัญญาณ...");$("roomCode").textContent="";
+ let peer;try{peer=new Peer("lastbeacon-"+code,peerOpts())}catch(e){netMsg("สร้างการเชื่อมต่อไม่ได้: "+e.message,1);return}
+ NET.peer=peer;
+ peer.on("open",()=>{
+  if(sid!==NET.sid)return;
+  let sv2=null;try{sv2=JSON.parse(localStorage.getItem("lb_host")||"null")}catch(e){}
+  if(sv2&&sv2.code===code&&sv2.G&&!sv2.G.over&&sv2.G.players[0]&&sv2.G.players[0].name.toLowerCase()===name.toLowerCase()){
+   S.G=sv2.G;S.mode="host";S.myId=0;
+   NET.seats=S.G.players.map(p=>({id:p.id,name:p.name,char:p.char,conn:null,online:p.id===0,seen:Date.now()}));
+   S.G.players.forEach(p=>{p.online=p.id===0;p.downAt=Date.now()});
+   S.gid=null;go("scr-game");afterChange();toast("กู้เกมเดิมของห้อง "+code+" แล้ว รอผู้เล่นเข้าด้วยชื่อเดิม");
+  }else{
+   S.G=null;S.mode="host";S.myId=0;NET.seats=[{id:0,name:name,char:null,conn:null,online:true,seen:Date.now()}];
+   netMsg("ห้องพร้อมแล้ว — ส่งรหัสหรือลิงก์ให้เพื่อน (การเชื่อมต่อจริงขึ้นกับเครือข่ายของแต่ละคน)");broadcastLobby();
+  }
+  NET.hb=setInterval(hostBeat,3000);
+ });
+ peer.on("connection",c=>{if(sid===NET.sid)hostConn(c)});
+ peer.on("error",e=>{if(sid!==NET.sid)return;
+  if(e.type==="unavailable-id")netMsg("รหัสห้องนี้ถูกใช้อยู่ ลองรหัสอื่นหรือปล่อยว่างให้สุ่มใหม่",1);
+  else netMsg("ข้อผิดพลาดเครือข่าย: "+e.type+" — ตรวจสอบอินเทอร์เน็ต/เซิร์ฟเวอร์สัญญาณ แล้วกดสร้างห้องใหม่",1)});
+ peer.on("disconnected",()=>{if(sid!==NET.sid)return;netMsg("หลุดจากเซิร์ฟเวอร์สัญญาณ กำลังเชื่อมใหม่ (ผู้เล่นที่เชื่อมอยู่แล้วยังเล่นต่อได้)",1);try{peer.reconnect()}catch(e){}});
+}
+function scheduleRejoin(sid){
+ clearTimeout(NET.rt);
+ if(NET.isHost||sid!==NET.sid)return;
+ if(NET.tries>=6){netMsg("เชื่อมต่อโฮสต์ไม่สำเร็จหลายครั้ง — โฮสต์อาจปิดเกม (ไม่มีการย้ายโฮสต์) หรือเครือข่ายบล็อก P2P ตรง กดเข้าร่วมห้องเพื่อลองใหม่",1);return}
+ NET.tries++;NET.rt=setTimeout(()=>clientJoin(true),4000);
+}
+function clientJoin(silent){
+ if(typeof Peer==="undefined"){netMsg("โหลดไลบรารี PeerJS ไม่สำเร็จ (ต้องออนไลน์) — ออนไลน์ P2P ใช้งานไม่ได้ตอนนี้",1);return}
+ const name=cleanName(silent?NET.name:$("inName").value),code=(silent?NET.code:$("inRoom").value).toUpperCase().replace(/[^A-Z0-9]/g,"");
+ if(!name||code.length!==5){netMsg("ใส่ชื่อผู้เล่นและรหัสห้อง 5 ตัวอักษร",1);return}
+ const tries=silent?NET.tries:0;closeNet();const sid=NET.sid;NET.tries=tries;
+ NET.isHost=false;NET.code=code;NET.name=name;saveSet({name:name});
+ netMsg("กำลังเชื่อมต่อห้อง "+code+" ...");
+ let peer;try{peer=new Peer(peerOpts())}catch(e){netMsg("สร้างการเชื่อมต่อไม่ได้: "+e.message,1);return}
+ NET.peer=peer;
+ peer.on("error",e=>{if(sid!==NET.sid)return;
+  netMsg(e.type==="peer-unavailable"?"ไม่พบห้องนี้ (รหัสผิด หรือโฮสต์ยังไม่ออนไลน์)":"ข้อผิดพลาดเครือข่าย: "+e.type+" (เครือข่ายอาจบล็อก P2P ตรง ต้องใช้ TURN หรือเซิร์ฟเวอร์สัญญาณมีปัญหา)",1);
+  scheduleRejoin(sid)});
+ peer.on("open",()=>{
+  if(sid!==NET.sid)return;
+  const c=peer.connect("lastbeacon-"+code,{reliable:true});NET.hostConn=c;
+  NET.jt=setTimeout(()=>{if(sid!==NET.sid||NET.joined)return;netMsg("หมดเวลาเชื่อมต่อ — เครือข่ายอาจบล็อก P2P ตรง (ต้องใช้ TURN) รหัสผิด หรือโฮสต์ออฟไลน์",1);scheduleRejoin(sid)},15000);
+  c.on("open",()=>{if(sid===NET.sid)safeSend(c,{t:"hello",name:name})});
+  c.on("data",m=>{if(sid===NET.sid)clientMsg(m)});
+  c.on("close",()=>{if(sid===NET.sid)clientLost()});
+  c.on("error",()=>{if(sid===NET.sid)clientLost()});
+ });
+ NET.hb=setInterval(()=>{if(sid!==NET.sid)return;if(NET.hostConn&&NET.hostConn.open)safeSend(NET.hostConn,{t:"ping"});if(NET.joined&&Date.now()-NET.lastHost>15000)clientLost()},3000);
+}
+function clientLost(){
+ const sid=NET.sid;if(NET.lostSid===sid)return;NET.lostSid=sid;NET.joined=false;
+ netMsg("ขาดการเชื่อมต่อกับโฮสต์ — กำลังลองเชื่อมใหม่ (หากโฮสต์ปิดเกม จะไม่มีการย้ายโฮสต์)",1);
+ if(S.G)render();scheduleRejoin(sid);
+}
+function clientMsg(m){
+ if(!m||typeof m!=="object")return;
+ NET.lastHost=Date.now();
+ if(m.t==="welcome"){NET.joined=true;NET.tries=0;clearTimeout(NET.jt);NET.lostSid=-1;S.myId=m.id;S.mode="client";netMsg("เชื่อมต่อสำเร็จ — ห้อง "+NET.code);$("roomCode").textContent=NET.code;if(!S.G){S.G=null;go("scr-lobby")}}
+ else if(m.t==="lobby"){NET.lobby=m.seats||[];renderLobby()}
+ else if(m.t==="state"){S.mode="client";S.G=m.G;if(S.screen!=="scr-game"&&S.screen!=="scr-end")go("scr-game");render()}
+ else if(m.t==="err"){toast(m.msg);netMsg(m.msg,1);if(m.fatal)NET.tries=99;else if(m.retry)scheduleRejoin(NET.sid)}
+}
+function hostStartGame(){
+ if(!NET.isHost)return;
+ if(NET.seats.length<2){toast("ต้องมีผู้เล่นอย่างน้อย 2 คน");return}
+ if(NET.seats.some(s=>!s.char)){toast("ทุกคนต้องเลือกตัวละคร");return}
+ if(NET.seats.some(s=>!s.online)){toast("มีผู้เล่นออฟไลน์ — รอให้กลับมาก่อน");return}
+ S.G=newGame({players:NET.seats.map(s=>({name:s.name,char:s.char,bot:false})),diff:"normal"});
+ S.G.players.forEach((p,i)=>{p.online=NET.seats[i].online});
+ S.mode="host";S.myId=0;S.gid=null;go("scr-game");afterChange();
+}
+
+/* ============ 9. UI WIRING ============ */
+function charGrid(cont,onPick){
+ clear(cont);
+ CHL.forEach(id=>{const d=el("div","charCard");d.dataset.id=id;const pv=el("div");pv.innerHTML=portrait(id);d.appendChild(pv);d.appendChild(el("b","",CH[id].n));d.appendChild(el("div","",CH[id].ab));d.onclick=()=>onPick(id);cont.appendChild(d)});
+}
+function markGrid(cont,sel,taken){Array.from(cont.children).forEach(e=>{e.classList.toggle("sel",e.dataset.id===sel);e.classList.toggle("taken",taken.has(e.dataset.id)&&e.dataset.id!==sel)})}
+function buildSetup(){
+ const sc=$("segCount"),sd=$("segDiff");clear(sc);clear(sd);
+ [2,3,4,5,6].forEach(n=>{const b=el("button","",String(n));b.onclick=()=>{S.setup.count=n;refreshSetup()};sc.appendChild(b)});
+ [["easy","ง่าย"],["normal","ปกติ"],["hard","ยาก"]].forEach(x=>{const b=el("button","",x[1]);b.dataset.v=x[0];b.onclick=()=>{S.setup.diff=x[0];refreshSetup()};sd.appendChild(b)});
+ refreshSetup();
+}
+function refreshSetup(){
+ Array.from($("segCount").children).forEach(b=>b.classList.toggle("sel",b.textContent===String(S.setup.count)));
+ Array.from($("segDiff").children).forEach(b=>b.classList.toggle("sel",b.dataset.v===S.setup.diff));
+ $("roundsInfo").textContent="จำนวนรอบสูงสุด: "+MAXR[S.setup.count]+" รอบ (ทุกคนมี 2 แอคชันต่อรอบ)";
+ $("diffInfo").textContent={easy:"ง่าย: เริ่มด้วยทรัพยากรมากขึ้น (ไม้4 เหล็ก4 คริสตัล3 เสบียง4) และเสบียงขาดแคลนไม่ทำให้แพ้ บอทเล่นแบบง่าย",normal:"ปกติ: เริ่มด้วยไม้2 เหล็ก2 คริสตัล1 เสบียง3 บอทวางแผนและประสานความสามารถ",hard:"ยาก: เริ่มด้วยคริสตัล0 เสบียง2 ฟ้าผ่า/ทรัพยากรสูญหายเสียเพิ่ม 1 บอทวางแผนไกลและตอบสนองต่อพายุที่รู้ล่วงหน้า"}[S.setup.diff];
+ saveSet({count:S.setup.count,diff:S.setup.diff});
+}
+const RULES=[
+"เป้าหมาย: ทีมร่วมมือกัน จุดประภาคารทั้ง 4 แห่ง แล้วให้ทุกคนกลับท่าเรือกลาง จ่ายคริสตัล 3 และเสบียง 3 เพื่อจุดประภาคารสุดท้าย ชนะหรือแพ้ร่วมกัน",
+"แต่ละรอบทุกคนมี 2 แอคชัน เล่นตามลำดับ แอคชันที่เหลือหมดอายุเมื่อจบเทิร์น เมื่อทุกคนเล่นครบ พายุ +1 และเปิดการ์ดพายุ 1 ใบ",
+"เดิน: แตะสถานที่ที่มีวงสีฟ้า (ต้องมีเส้นทางเชื่อมและไม่ถูกปิด) · เก็บของ: +2 ที่จุดผลิต (ไม้: ป่ามรกต, เหล็ก: เหมืองเหล็ก/หุบเขาหิน, คริสตัล: ถ้ำคริสตัล/ทะเลสาบวิญญาณ) · เสบียงได้จากช่วยผู้รอดชีวิตและสมบัติ",
+"สำรวจ: ที่หมู่บ้านร้าง ป่าหมอก ซากโบราณ จั่วการ์ดสมบัติ (อาจพบผู้รอดชีวิตที่ซ่อนอยู่) · ช่วยคน: +2 เสบียง และพายุ -1",
+"ประภาคารเหนือ: ไม้3 คริสตัล2 · ตะวันออก: เหล็ก3 คริสตัล2 · ใต้: ไม้2 เหล็ก2 เสบียง1 · ตะวันตก: เหล็ก2 คริสตัล2 เสบียง1 (ต้องไปยืนที่ประภาคารนั้น)",
+"แพ้เมื่อ: พายุถึง 8, หมดจำนวนรอบ (2 คน 8 รอบ, 3 คน 7, 4 คน 6, 5 คน 5, 6 คน 4), หรือเสบียงขาดแคลนแล้วจ่ายไม่ได้ (ยกเว้นระดับง่าย)",
+"ตัวละคร: กัปตันเดินแรกฟรี · วิศวกรลดต้นทุนประภาคาร 1 · สอดแนมสำรวจแรกฟรี · หมอช่วยคนได้เสบียงเพิ่ม · นักเอาชีวิตรอดเก็บแรกได้ 3 · จอมเวทส่องพายุและยกเลิกพายุร้าย 1 ครั้ง",
+"ออนไลน์: ใช้ PeerJS (WebRTC) โฮสต์เป็นผู้ตัดสินสถานะเกม P2P ตรงอาจเชื่อมต่อไม่ได้บนบางเครือข่าย ต้องตั้งค่า TURN เอง"];
+function init(){
+ const set=loadSet();
+ AUD.on=set.music!==false;$("btnMusic").textContent=$("btnMusic2").textContent="ดนตรี: "+(AUD.on?"เปิด":"ปิด");
+ if(set.count)S.setup.count=set.count;if(set.diff)S.setup.diff=set.diff;
+ if(set.name)$("inName").value=set.name;
+ document.querySelectorAll(".ic").forEach(e=>{e.innerHTML=icon(e.dataset.i)});
+ pxInit();buildSetup();
+ charGrid($("charGrid"),id=>{S.setup.char=id;markGrid($("charGrid"),id,new Set());$("charDesc").textContent=CH[id].n+" — "+CH[id].ab});
+ charGrid($("lobbyChars"),pickChar);
+ RULES.forEach(t=>$("rulesBody").appendChild(el("p","",t)));
+ document.addEventListener("pointerdown",()=>AUD.unlock());
+ document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest(".btn"))sfx("click")});
+ document.querySelectorAll("[data-back]").forEach(b=>{b.onclick=()=>go(b.dataset.back)});
+ $("btnPlay").onclick=()=>go("scr-mode");
+ $("btnRules").onclick=()=>$("mdRules").classList.add("active");
+ $("btnRulesClose").onclick=()=>$("mdRules").classList.remove("active");
+ $("btnMusic").onclick=$("btnMusic2").onclick=()=>{AUD.unlock();AUD.setOn(!AUD.on)};
+ try{if(localStorage.getItem("lb_solo")){$("btnResume").style.display=""}}catch(e){}
+ $("btnResume").onclick=()=>{try{const G=JSON.parse(localStorage.getItem("lb_solo"));if(!G||G.over)throw new Error("no save");S.G=G;S.mode="solo";S.myId=0;S.gid=null;S.cfg={count:G.n,diff:G.diff,char:G.players[0].char};go("scr-game");afterChange()}catch(e){toast("ไม่พบเกมที่บันทึกไว้");$("btnResume").style.display="none"}};
+ $("btnTest").onclick=runTests;
+ $("btnSolo").onclick=()=>go("scr-setup");
+ $("btnOnline").onclick=()=>{go("scr-lobby");if(typeof Peer==="undefined")netMsg("โหลดไลบรารี PeerJS ไม่สำเร็จ — ต้องออนไลน์เพื่อโหลดจาก CDN",1);renderLobby()};
+ $("btnToChars").onclick=()=>go("scr-chars");
+ $("btnCharsBack").onclick=()=>go("scr-setup");
+ $("btnStart").onclick=()=>{if(!S.setup.char){toast("เลือกตัวละครก่อน");return}S.cfg={count:S.setup.count,diff:S.setup.diff,char:S.setup.char};newSolo()};
+ $("btnCreate").onclick=hostCreate;
+ $("btnJoin").onclick=()=>{NET.tries=0;clientJoin(false)};
+ $("btnTurn").onclick=()=>{const cur=localStorage.getItem("lb_turn")||"";const v=prompt('วาง JSON ของ TURN (ว่าง = ล้างค่า) เช่น [{"urls":["turn:host:3478?transport=udp","turns:host:443?transport=tcp"],"username":"u","credential":"p"}] — เก็บในเบราว์เซอร์นี้เท่านั้น',cur);if(v===null)return;try{if(v.trim()===""){localStorage.removeItem("lb_turn");netMsg("ล้างค่า TURN แล้ว")}else{const j=JSON.parse(v);if(!Array.isArray(j))throw new Error("ต้องเป็นอาร์เรย์");localStorage.setItem("lb_turn",JSON.stringify(j));netMsg("บันทึกค่า TURN แล้ว ("+j.length+" เซิร์ฟเวอร์)")}}catch(e){netMsg("JSON ไม่ถูกต้อง: "+e.message,1)}};
+ $("btnCopyLink").onclick=()=>{const l=inviteLink();if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(l).then(()=>toast("คัดลอกลิงก์แล้ว"),()=>prompt("คัดลอกลิงก์นี้",l));else prompt("คัดลอกลิงก์นี้",l)};
+ $("btnHostStart").onclick=hostStartGame;
+ $("btnLobbyBack").onclick=()=>{leaveNet();go("scr-mode")};
+ $("btnHistory").onclick=()=>{const b=$("histBody");clear(b);const G=S.G;if(!G||!G.hist.length)b.appendChild(el("p","","ยังไม่มีรอบที่จบ"));else G.hist.forEach(h=>b.appendChild(el("p","","รอบ "+h.r+": "+h.ev+(h.note?" → "+h.note:"")+" | พายุ "+h.storm+" | "+RES.map(k=>RN[k]+" "+h.res[k]).join(" "))));$("mdHistory").classList.add("active")};
+ $("btnHistClose").onclick=()=>$("mdHistory").classList.remove("active");
+ $("btnRestart").onclick=()=>ask("เริ่มเกมใหม่? ความคืบหน้าปัจจุบันจะหายไป",restartGame);
+ document.querySelectorAll("#actions .btn").forEach(b=>{b.onclick=()=>onAct(b.dataset.act)});
+ $("btnCardOk").onclick=closeCard;
+ $("btnNewGame").onclick=()=>{if(S.mode==="solo")newSolo();else if(S.mode==="host")restartGame();else toast("รอโฮสต์เริ่มเกมใหม่ หรือกลับเมนูหลัก")};
+ $("btnEndMenu").onclick=()=>{if(S.mode==="host"||S.mode==="client")leaveNet();clearTimeout(S.bt);S.mode=null;go("scr-menu")};
+ $("btnErrClose").onclick=()=>$("errPanel").classList.remove("show");
+ const q=new URLSearchParams(location.search),room=(q.get("room")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,5);
+ if(room){$("inRoom").value=room;go("scr-lobby");renderLobby();netMsg("ลิงก์เชิญ: ใส่ชื่อของคุณแล้วกด เข้าร่วมห้อง")}
+ if(q.has("test"))runTests();
+}
+
+/* ============ 10. SELF TEST (จำลองเกมบอทล้วน ไม่เกี่ยวกับ UI) ============ */
+function simGame(n,diff,sd){
+ const chars=shuffle(CHL),pl=[];for(let i=0;i<n;i++)pl.push({name:"P"+i,char:chars[i],bot:true});
+ const G=newGame({players:pl,diff:diff,seed:sd*7919+n});
+ let steps=0,bad=0;
+ while(!G.over&&steps++<6000){
+  const p=curP(G),pn=botPlan(G,p);
+  let r=apply(G,Object.assign({pid:p.id},pn.a));
+  if(!r.ok){bad++;r=apply(G,{t:"end",pid:p.id});if(!r.ok){bad+=100;break}}
+  RES.forEach(k=>{if(G.res[k]<0||G.res[k]>12)bad+=1000});
+  if(G.storm<0||G.storm>8)bad+=1000;
+  if(!connected(G.closed))bad+=1000;
+ }
+ if(!G.over)bad+=500;
+ return{G:G,bad:bad};
+}
+function runTests(){
+ const out=[],ok=(c,m)=>out.push((c?"ผ่าน ":"ล้มเหลว ")+m);
+ try{
+  ok(Object.keys(LOC).length===13,"13 สถานที่");ok(EDGES.length===19,"เส้นทาง 19 เส้น");ok(connected([]),"กราฟเชื่อมถึงกันครบ");
+  ok(TREASURE.length===12&&STORMS.length===16,"การ์ดสมบัติ 12 / พายุ 16");
+  const G=newGame({players:[{name:"A",char:"eng"},{name:"B",char:"cap"}],diff:"normal",seed:5});
+  const p=G.players[0];G.res={wood:3,iron:0,crystal:1,rations:0};p.loc="LN";
+  ok(!!check(G,p,"repair",{}),"ทรัพยากรไม่พอถูกปฏิเสธ");
+  ok(check(G,p,"repair",{rEng:"crystal"})==="","วิศวกรลดคริสตัล 1 แล้วจุดประภาคารเหนือได้");
+  const r=apply(G,{t:"repair",pid:0,rEng:"crystal"});
+  ok(r.ok&&G.lit.LN&&G.res.wood===0&&G.res.crystal===0,"จ่ายทรัพยากรถูกต้องและไฟติด");
+  ok(!!check(G,p,"repair",{}),"ห้ามจุดซ้ำ");
+  ok(!!check(G,G.players[0],"move",{to:"IM"}),"ห้ามเดินข้ามเส้นที่ไม่เชื่อม");
+  const G2=newGame({players:[{name:"A",char:"sur"},{name:"B",char:"cap"}],diff:"normal",seed:6});
+  G2.players[0].loc="EF";apply(G2,{t:"gather",pid:0});ok(G2.res.wood===5,"นักเอาชีวิตรอดเก็บครั้งแรกได้ 3");
+  apply(G2,{t:"gather",pid:0});ok(G2.res.wood===7,"เก็บครั้งที่สองได้ 2");
+  let tot=0,bad=0,wins=0;const lines=[];
+  [2,3,4,5,6].forEach(n=>["easy","normal","hard"].forEach(d=>{let w=0;for(let s=1;s<=6;s++){const x=simGame(n,d,s);tot++;bad+=x.bad;if(x.G.over&&x.G.over.win){w++;wins++}}lines.push(n+" คน/"+d+": ชนะ "+w+"/6")}));
+  ok(bad===0,"จำลอง "+tot+" เกม ไม่พบการละเมิดกติกา (bad="+bad+")");
+  out.push("บอทชนะ "+wins+"/"+tot+" เกม");lines.forEach(l=>out.push(l));
+ }catch(e){out.push("ล้มเหลว (exception): "+e.message)}
+ panel(out.join("\n"),"ผลทดสอบระบบ (จำลองเกมบอทเท่านั้น ไม่ใช่การทดสอบออนไลน์/มือถือ)");
+}
+init();
+</script>
+</body>
+</html>
